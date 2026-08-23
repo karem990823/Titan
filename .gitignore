@@ -1,0 +1,45 @@
+# Secretos y configuracion local
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+
+# Pruebas, tipado y cobertura
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Node.js y Vite
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Bases de datos locales y archivos generados
+*.sqlite3
+*.db
+*.log
+
+# Docker y datos persistentes locales
+docker-data/
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
