@@ -1,11 +1,39 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from App.Modulo_Cursos.routes import curso_routes
+from App.Modulo_Cursos.routes import (
+    auth_routes,
+    certificado_indumentaria_routes,
+    certificado_routes,
+    curso_routes,
+    detalle_factura_routes,
+    documento_routes,
+    evaluacion_presentada_routes,
+    evaluacion_routes,
+    factura_routes,
+    indumentaria_routes,
+    inspeccion_indumentaria_routes,
+    inscripcion_routes,
+    metodo_pago_routes,
+    pago_routes,
+    pregunta_routes,
+    programacion_routes,
+    respuesta_routes,
+    resultado_routes,
+    rol_routes,
+    salud_routes,
+    tipo_identificacion_routes,
+    usuario_routes
+)
 from App.Modulo_Cursos.config.database import engine, Base
+from App.Modulo_Cursos.middleware.error_middleware import register_middlewares
+from fastapi.exceptions import RequestValidationError
+from App.Modulo_Cursos.exceptions import (
+    validation_exception_handler,
+    general_exception_handler
+)
 
-# 1. Crear las tablas en la base de datos
-# Esto asegura que SQLAlchemy reconozca las tablas definidas en los modelos
-Base.metadata.create_all(bind=engine)
+
+# Nota: crear las tablas en el evento de arranque para evitar errores
+# durante la importación si la base de datos no está disponible.
 
 # 2. Inicializar la aplicación FastAPI
 app = FastAPI(
@@ -14,19 +42,52 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# 3. Configurar CORS 
-# Esto permite que el frontend (React, Vue o HTML) se comunique con el backend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"], # Permitir todos los métodos (GET, POST, etc)
-    allow_headers=["*"],
+app.add_exception_handler(
+    RequestValidationError,
+    validation_exception_handler
 )
+
+
+app.add_exception_handler(
+    Exception,
+    general_exception_handler
+)
+# Registrar middlewares (CORS y manejo de errores)
+register_middlewares(app)
+
+
+@app.on_event("startup")
+def on_startup():
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Tablas de la base de datos creadas (si no existían)")
+    except Exception as e:
+        print(f"Advertencia: no se pudieron crear las tablas: {e}")
 
 # 4. Incluir las rutas del Módulo de Cursos
 # Aquí conectamos el router que creamos en curso_routes.py
+app.include_router(auth_routes.router)
 app.include_router(curso_routes.router)
+app.include_router(programacion_routes.router)
+app.include_router(inscripcion_routes.router)
+app.include_router(usuario_routes.router)
+app.include_router(tipo_identificacion_routes.router)
+app.include_router(salud_routes.router)
+app.include_router(certificado_routes.router)
+app.include_router(certificado_indumentaria_routes.router)
+app.include_router(detalle_factura_routes.router)
+app.include_router(documento_routes.router)
+app.include_router(evaluacion_presentada_routes.router)
+app.include_router(evaluacion_routes.router)
+app.include_router(factura_routes.router)
+app.include_router(indumentaria_routes.router)
+app.include_router(inspeccion_indumentaria_routes.router)
+app.include_router(metodo_pago_routes.router)
+app.include_router(pago_routes.router)
+app.include_router(pregunta_routes.router)
+app.include_router(respuesta_routes.router)
+app.include_router(resultado_routes.router)
+app.include_router(rol_routes.router)
 
 # 5. Ruta de bienvenida (opcional)
 @app.get("/")
@@ -37,5 +98,3 @@ def root():
         "estado": "Online"
     }
 
-# Para ejecutar la aplicación, usa el siguiente comando en la terminal:
-# uvicorn main:app --reload
