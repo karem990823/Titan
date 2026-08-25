@@ -1,16 +1,34 @@
+# Levanta SOLO MySQL, para desarrollo local del backend fuera de Docker
+# (be/.env con DB_HOST=localhost). Para correr el stack completo (db + be + fe)
+# usa el docker-compose.yml de la raíz del proyecto en su lugar.
+#
+# Uso: copiar base/.env.example como base/.env, completar valores propios, y
+#      correr "docker compose up -d" desde esta carpeta.
+
 services:
   mysql:
-    image: mysql:8.0
-    container_name: mysql-db
+    image: mysql:8.4.11
+    container_name: titan_db_local
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: titan
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     ports:
-      - "3306:3306"
+      # Solo accesible desde esta máquina (127.0.0.1), nunca desde la red.
+      - "127.0.0.1:3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./titan.sql:/docker-entrypoint-initdb.d/1-titan.sql
-      - ./inserts.sql:/docker-entrypoint-initdb.d/2-inserts.sql
+      - ./titan.sql:/docker-entrypoint-initdb.d/1-titan.sql:ro
+      - ./inserts.sql:/docker-entrypoint-initdb.d/2-inserts.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h localhost -u root --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   mysql_data:
