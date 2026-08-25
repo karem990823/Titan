@@ -9,6 +9,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .venv/
+.venv*/
 venv/
 env/
 ENV/
@@ -27,6 +28,7 @@ node_modules/
 dist/
 .vite/
 coverage/
+*.tsbuildinfo
 
 # Bases de datos locales y archivos generados
 *.sqlite3
@@ -35,6 +37,16 @@ coverage/
 
 # Docker y datos persistentes locales
 docker-data/
+
+# Documentos subidos en desarrollo local (fuera de docker, sin volumen)
+be/uploads/
+
+# Artefactos sueltos de pruebas manuales (tokens de auth, certificados descargados, etc.)
+*_token.txt
+token.txt
+cert*.pdf
+certificado*.pdf
+doc_prueba.*
 
 # Editores y sistema operativo
 .vscode/
