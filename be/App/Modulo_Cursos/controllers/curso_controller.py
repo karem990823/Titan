@@ -1,11 +1,20 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from sqlalchemy.orm import joinedload
-from App.Modulo_Cursos.models.curso_model import ProgramacionCurso, Inscripcion, Certificado, Curso, Usuario, Salud
+
+from App.Modulo_Cursos.models.programacion_model import ProgramacionCurso
+from App.Modulo_Cursos.models.inscripcion_model import Inscripcion
+from App.Modulo_Cursos.models.certificado_model import Certificado
+from App.Modulo_Cursos.models.curso_model import Curso
+from App.Modulo_Cursos.models.usuario_model import Usuario
+from App.Modulo_Cursos.models.salud_model import Salud
+
 from fastapi import HTTPException, status
 from datetime import date
 from typing import Dict, Any
 from App.Modulo_Cursos.utils.response import api_response
+
+
 def programar_nuevo_curso(db: Session, data):
     conflicto = db.query(ProgramacionCurso).filter(
         and_(
@@ -97,7 +106,26 @@ def _validar_cupos(prog: ProgramacionCurso):
             )
         )
     
-def inscribir_participante(db: Session, id_prog: int, id_user: int):
+def _validar_trabajador_propio(db: Session, id_user: int, current_user: Usuario):
+    # Una Empresa solo puede inscribir trabajadores que le pertenecen; Instructor
+    # y Administrador no tienen esta restricción.
+    rol_actual = current_user.rol.nombre_rol if current_user.rol else None
+    if rol_actual != "Empresa":
+        return
+
+    trabajador = db.query(Usuario).filter(Usuario.id_usuario == id_user).first()
+    if not trabajador or trabajador.id_empresa != current_user.id_usuario:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=api_response(
+                success=False,
+                message="No se pudo realizar la inscripción",
+                error="Solo puedes inscribir trabajadores de tu propia empresa"
+            )
+        )
+
+
+def inscribir_participante(db: Session, id_prog: int, id_user: int, current_user: Usuario):
     with db.begin_nested():
 
         prog = db.query(ProgramacionCurso).filter(
@@ -115,6 +143,7 @@ def inscribir_participante(db: Session, id_prog: int, id_user: int):
             )
 
         # validaciones
+        _validar_trabajador_propio(db, id_user, current_user)
         _validar_cupos(prog)
         _validar_inscripcion_duplicada(db, id_prog, id_user)
         _validar_aptitud_medica(db, id_user)
@@ -176,3 +205,64 @@ def obtener_calendario(db: Session):
         # Esto te dirá el error exacto en la terminal si vuelve a fallar
         print(f"Error en calendario: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+    
+
+def actualizar_programacion(db: Session, id_programacion: int, data):
+
+    programacion = db.query(ProgramacionCurso).filter(
+        ProgramacionCurso.id_programacion == id_programacion
+    ).first()
+
+    if not programacion:
+        raise HTTPException(
+            status_code=404,
+            detail="Programación no encontrada"
+        )
+
+
+    programacion.id_curso = data.id_curso
+    programacion.id_usuario = data.id_usuario
+    programacion.fecha = data.fecha
+    programacion.hora = data.hora
+    programacion.cupos = data.cupos
+
+
+    db.commit()
+    db.refresh(programacion)
+
+
+    return api_response(
+        success=True,
+        message="Programación actualizada",
+        data={
+            "id_programacion": programacion.id_programacion
+        }
+    )
+
+
+
+def eliminar_programacion(db: Session, id_programacion: int):
+
+    programacion = db.query(ProgramacionCurso).filter(
+        ProgramacionCurso.id_programacion == id_programacion
+    ).first()
+
+
+    if not programacion:
+        raise HTTPException(
+            status_code=404,
+            detail="Programación no encontrada"
+        )
+
+
+    db.delete(programacion)
+    db.commit()
+
+
+    return api_response(
+        success=True,
+        message="Programación eliminada",
+        data={
+            "id_programacion": id_programacion
+        }
+    )

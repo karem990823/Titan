@@ -7,6 +7,12 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASSWORD: str
 
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
+
+    UPLOADS_DIR: str = "uploads"
+
     @property
     def DATABASE_URL(self):
         # Formato: mysql+pymysql://usuario:password@host:port/nombre_db
