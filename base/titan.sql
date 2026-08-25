@@ -20,7 +20,7 @@ CREATE TABLE usuarios (
     nit BIGINT,
     direccion VARCHAR(200),
     telefono BIGINT,
-    correo VARCHAR(100),
+    correo VARCHAR(100) UNIQUE,
     password_hash VARCHAR(255),
     estado_activo BOOLEAN DEFAULT TRUE,
     id_empresa INT,
@@ -95,6 +95,7 @@ CREATE TABLE documentos(
     descripcion VARCHAR(200),
     ruta_archivo VARCHAR(255) NOT NULL, -- ¡Importante para saber dónde está el PDF!
     id_usuario INT NULL, -- Será nulo si el documento es de un trabajador
+    fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (id_usuario)    REFERENCES usuarios(id_usuario)       ON DELETE SET NULL
 );
 CREATE TABLE salud(
