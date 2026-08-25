@@ -1,60 +1,60 @@
-# Frontend Módulo Académico - TITAN
+# Frontend TITAN
 
-Este proyecto es la interfaz de usuario (frontend) para el Módulo Académico de la plataforma TITAN. Ha sido desarrollado con React y permite gestionar la programación de cursos y la inscripción de participantes de manera eficiente.
+Interfaz de usuario del sistema TITAN. React 19 + TypeScript + Vite, con tres áreas separadas por rol (Empresa, Instructor, Administrador) y una página pública de descarga de certificados.
 
-##  Características Principales
+## Características principales
 
-El frontend del Módulo Académico incluye las siguientes funcionalidades:
+- **Página pública (`/`):** consulta y descarga de certificado por tipo + número de documento, sin necesidad de iniciar sesión.
+- **Login por rol (`/login`):** Administrador, Instructor o Empresa; cada uno ve solo la navegación y las rutas que le corresponden (`RequireRole`).
+- **Empresa:** registro de trabajadores propios, carga y consulta de sus documentos, inscripción a cursos, descarga de sus certificados.
+- **Instructor:** calendario, programación de cursos, inscripción de participantes, gestión de evaluaciones (preguntas/respuestas) y calificación.
+- **Administrador:** todo lo anterior + gestión de cuentas de usuario, facturación e inventario de equipos.
 
-*   **Programar Curso:** Permite a los administradores crear nuevas sesiones de formación, especificando el tipo de curso (Trabajo en alturas, Reentrenamiento, etc.), el instructor a cargo, la fecha, la hora y el número máximo de cupos disponibles.
-*   **Inscribir Participante:** Facilita la inscripción de un participante a un curso ya programado. El sistema está preparado para realizar validaciones automáticas, como la disponibilidad de cupos, evitar inscripciones duplicadas y verificar requisitos del participante (ej. aptitud médica).
-*   **Calendario de Cursos:** Ofrece una vista clara y organizada de todos los cursos programados. Muestra detalles importantes de cada sesión, como el nombre del curso, la fecha, la hora, los cupos restantes y el instructor asignado.
+## Estructura
 
-##  Cómo Empezar
-
-Sigue estas instrucciones para obtener una copia del proyecto en funcionamiento en tu máquina local para desarrollo y pruebas.
-
-### Pre-requisitos
-
-Asegúrate de tener instalado Node.js y un gestor de paquetes (npm o yarn) en tu sistema.
-
-*   [Node.js](https://nodejs.org/) (se recomienda v18 o superior)
-*   [npm](https://www.npmjs.com/get-npm) o [yarn](https://yarnpkg.com/)
-
-### Instalación
-
-1.  Navega hasta el directorio raíz del proyecto `FrontendTitan`.
-
-2.  Instala todas las dependencias necesarias ejecutando el siguiente comando en tu terminal:
-
-    ```bash
-    npm install
-    ```
-
-    O si prefieres usar yarn:
-
-    ```bash
-    yarn install
-    ```
-
-### Ejecución en Desarrollo
-
-Para iniciar el servidor de desarrollo local, ejecuta:
-
-```bash
-npm run dev
+```
+src/
+├── api/client.ts          Cliente fetch único: inyecta el token, maneja 401, parsea errores
+├── features/
+│   ├── auth/                AuthContext, LoginPage
+│   ├── publico/               Página pública de consulta de certificados
+│   ├── academico/               Calendario, cursos, evaluaciones (Instructor/Admin)
+│   ├── empresa/                   Trabajadores, documentos, inscripción, certificados
+│   └── admin/                      Usuarios, facturación, inventario
+├── components/Layout/         Sidebar, Header, RequireRole
+├── components/UI/               Field, Toast, PageHeader
+├── constants/color.ts             Paleta + constantes API_* (una por router del backend)
+└── types/index.ts                  Interfaces TypeScript compartidas
 ```
 
-o, dependiendo de la configuración de tu proyecto:
+## Requisitos
+
+- Node.js 20+
+- [pnpm](https://pnpm.io/) — este proyecto usa `pnpm-lock.yaml`, no `package-lock.json`. Instálalo con `corepack enable` o `npm install -g pnpm`.
+
+## Instalación y desarrollo local
 
 ```bash
-npm start
+pnpm install
+pnpm run dev       # http://localhost:5173, con proxy de /api hacia el backend (ver vite.config.ts)
 ```
 
-Esto iniciará la aplicación en modo de desarrollo. Abre http://localhost:5173 (o el puerto que indique la terminal) en tu navegador para ver la aplicación.
+Por defecto el proxy de desarrollo apunta a `http://localhost:8000`. Para apuntar a otro backend, define `VITE_API_URL` en un `.env` local (ver `.env.example`).
 
-## ⚙️ Conexión con el Backend
+## Otros comandos
 
-Este frontend está diseñado para comunicarse con un servicio de backend. Las llamadas a la API se realizan al endpoint base `/api/cursos`.
+```bash
+pnpm run build      # tsc -b && vite build
+pnpm run lint        # eslint .
+pnpm run preview      # sirve el build de producción localmente
+```
 
-Para que las peticiones funcionen correctamente en un entorno de desarrollo, es probable que necesites configurar un proxy en tu archivo de configuración de Vite (`vite.config.js`) o en el `package.json` si usas Create React App, para redirigir las peticiones al servidor backend que se ejecuta localmente.
+## Conexión con el backend
+
+El backend expone cada dominio bajo su propio router (`/api/auth`, `/api/cursos`, `/api/programaciones`, `/api/inscripciones`, `/api/usuarios`, `/api/documentos`, `/api/certificados`, `/api/evaluaciones`, `/api/facturas`, `/api/indumentaria`, etc. — ver `be/main.py`), no un único endpoint base. Cada uno tiene su constante `API_*` en `src/constants/color.ts`.
+
+Todas las llamadas pasan por `apiFetch`/`apiFetchBlob` en `src/api/client.ts`, que agrega el header `Authorization: Bearer <token>` automáticamente y redirige a `/login` si el backend responde 401 — nunca se debe usar `fetch()` directamente en una página nueva.
+
+## Docker
+
+En producción no se usa `pnpm run dev`: `fe.Dockerfile` construye el bundle (`pnpm run build`) y lo sirve con Nginx, que además hace de reverse proxy de `/api/*` hacia el contenedor `be` (ver `nginx.conf`). El flujo recomendado para correr todo el stack es `../scripts/start.sh` desde la raíz del repositorio, no ejecutar este frontend de forma aislada.
