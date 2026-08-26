@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { COLORS } from "../../constants/color";
-import { useAuth } from "../../features/auth/AuthContext";
+import { useAuth } from "../../features/auth/useAuth";
 
 function Header() {
   const { usuario, logout } = useAuth();

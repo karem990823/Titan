@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import logo from "../../assets/logo.jpeg";
 import { COLORS } from "../../constants/color";
-import { useAuth } from "../../features/auth/AuthContext";
+import { useAuth } from "../../features/auth/useAuth";
 import type { RolNombre } from "../../types";
 
 interface NavItem {
