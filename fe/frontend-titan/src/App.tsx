@@ -3,7 +3,7 @@ import "./App.css";
 import { COLORS } from "./constants/color";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import type { ToastState, ToastType } from "./types";
-import { useAuth } from "./features/auth/AuthContext";
+import { useAuth } from "./features/auth/useAuth";
 
 // Layout & UI
 import Sidebar from "./components/Layout/Sidebar";

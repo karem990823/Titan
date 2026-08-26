@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Field from "../../components/UI/Field";
 import { COLORS, inputStyle } from "../../constants/color";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./useAuth";
 import logo from "../../assets/logo.jpeg";
 
 function LoginPage() {
