@@ -1,0 +1,35 @@
+name: CI - Docker Compose (db + be + fe)
+
+# Construye las 2 imágenes propias del proyecto (be y fe; "db" usa la imagen
+# oficial mysql:8.4.11, no hay nada que construir ahí) y levanta el stack
+# completo con docker compose, igual que en desarrollo local. Si esto pasa,
+# significa que el PR no rompió el pipeline de despliegue.
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+jobs:
+  docker-stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Construir y levantar db + be + fe
+        run: bash scripts/start.sh
+
+      - name: Estado de los contenedores
+        if: always()
+        run: docker compose ps
+
+      - name: Logs (solo si algo falló)
+        if: failure()
+        run: docker compose logs
+
+      - name: Apagar y limpiar
+        if: always()
+        run: bash scripts/stop.sh
