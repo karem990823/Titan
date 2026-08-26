@@ -38,6 +38,7 @@ function Inventario({ onToast }: InventarioProps) {
   useEffect(() => {
     cargarIndumentaria();
     cargarInspecciones();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const crearItem = async (e: React.FormEvent) => {

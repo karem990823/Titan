@@ -1,35 +1,38 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { apiFetch, clearToken, getToken, setToken as guardarToken } from "../../api/client";
 import { API_AUTH } from "../../constants/color";
 import type { ApiResponse, UsuarioAutenticado } from "../../types";
-
-interface AuthContextValue {
-  usuario: UsuarioAutenticado | null;
-  cargando: boolean;
-  login: (correo: string, password: string) => Promise<UsuarioAutenticado>;
-  logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+import { AuthContext } from "./authContextObject";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<UsuarioAutenticado | null>(null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      setCargando(false);
-      return;
-    }
+    let ignore = false;
 
-    apiFetch<ApiResponse<UsuarioAutenticado>>(`${API_AUTH}/me`)
-      .then((res) => {
+    (async () => {
+      const token = getToken();
+      if (!token) {
+        if (!ignore) setCargando(false);
+        return;
+      }
+
+      try {
+        const res = await apiFetch<ApiResponse<UsuarioAutenticado>>(`${API_AUTH}/me`);
+        if (ignore) return;
         if (res.success) setUsuario(res.data);
         else clearToken();
-      })
-      .catch(() => clearToken())
-      .finally(() => setCargando(false));
+      } catch {
+        if (!ignore) clearToken();
+      } finally {
+        if (!ignore) setCargando(false);
+      }
+    })();
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const login = async (correo: string, password: string) => {
@@ -53,10 +56,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth debe usarse dentro de <AuthProvider>");
-  return ctx;
 }
