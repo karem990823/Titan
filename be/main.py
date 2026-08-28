@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from App.Modulo_Cursos.routes import (
+    accidente_routes,
+    asistencia_routes,
     auth_routes,
     certificado_indumentaria_routes,
     certificado_routes,
@@ -20,6 +22,7 @@ from App.Modulo_Cursos.routes import (
     resultado_routes,
     rol_routes,
     salud_routes,
+    tipo_accidente_routes,
     tipo_identificacion_routes,
     usuario_routes
 )
@@ -88,6 +91,9 @@ app.include_router(pregunta_routes.router)
 app.include_router(respuesta_routes.router)
 app.include_router(resultado_routes.router)
 app.include_router(rol_routes.router)
+app.include_router(asistencia_routes.router)
+app.include_router(accidente_routes.router)
+app.include_router(tipo_accidente_routes.router)
 
 # 5. Ruta de bienvenida (opcional)
 @app.get("/")

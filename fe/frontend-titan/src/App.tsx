@@ -23,6 +23,9 @@ import Dashboard from "./features/academico/Dashboard";
 import Evaluaciones from "./features/academico/Evaluaciones";
 import EditarEvaluacion from "./features/academico/EditarEvaluacion";
 import Resultados from "./features/academico/Resultados";
+import Salud from "./features/academico/Salud";
+import Asistencia from "./features/academico/Asistencia";
+import Incidentes from "./features/academico/Incidentes";
 
 // Empresa
 import RegistrarTrabajador from "./features/empresa/RegistrarTrabajador";
@@ -121,6 +124,30 @@ function App() {
             element={
               <RequireRole roles={["Administrador", "Instructor"]}>
                 <Resultados onToast={showToast} />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/academico/salud"
+            element={
+              <RequireRole roles={["Administrador", "Instructor"]}>
+                <Salud onToast={showToast} />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/academico/asistencia"
+            element={
+              <RequireRole roles={["Administrador", "Instructor"]}>
+                <Asistencia onToast={showToast} />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/academico/incidentes"
+            element={
+              <RequireRole roles={["Administrador", "Instructor"]}>
+                <Incidentes onToast={showToast} />
               </RequireRole>
             }
           />

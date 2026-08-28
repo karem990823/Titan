@@ -218,3 +218,39 @@ export interface UsuarioAdmin {
   id_empresa: number | null;
   estado_activo: boolean;
 }
+
+// --- Salud ocupacional, asistencia e incidentes (instructor/admin) ---
+
+export interface RegistroSalud {
+  id_salud: number;
+  apto: "SI" | "NO";
+  restricciones: string | null;
+  observaciones: string | null;
+  fecha_examen: string;
+  fecha_vencimiento: string;
+  id_trabajador: number;
+  trabajador: string | null;
+}
+
+export interface AsistenciaInscrito {
+  id_inscripcion: number;
+  id_usuario: number;
+  nombre: string | null;
+  asistio: boolean | null;
+}
+
+export interface TipoAccidente {
+  id_tipo_accidente: number;
+  nombre: string;
+}
+
+export interface Accidente {
+  id_accidente: number;
+  fecha: string;
+  lugar: string;
+  id_trabajador: number;
+  trabajador: string | null;
+  id_tipo_accidente: number;
+  tipo_accidente: string | null;
+  descripcion: string | null;
+}
