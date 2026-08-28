@@ -14,6 +14,14 @@ VALUES
 ('Pasaporte'),
 ('NIT');
 
+INSERT INTO tipos_accidente(nombre)
+VALUES
+('Caída de altura'),
+('Golpe por objeto'),
+('Atrapamiento'),
+('Corte/laceración'),
+('Otro');
+
 -- Contraseñas sembradas en texto plano históricamente ('123' / 'empresa123') ahora
 -- van como hash bcrypt (generado con be/scripts/hash_seed_passwords.py) para que
 -- verify_password() funcione contra datos reales. Los valores en texto plano
