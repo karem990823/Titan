@@ -1,3 +1,5 @@
+import logging
+import uuid
 from typing import Iterable, Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -6,6 +8,8 @@ from starlette.requests import Request
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+logger = logging.getLogger("titan.errors")
+
 
 class ErrorMiddleware(BaseHTTPMiddleware):
 
@@ -13,13 +17,15 @@ class ErrorMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
             return response
-        except Exception as e:
+        except Exception:
+            id_correlacion = uuid.uuid4().hex[:8]
+            logger.exception("Error no controlado [%s] en %s %s", id_correlacion, request.method, request.url.path)
             return JSONResponse(
                 status_code=500,
                 content={
                     "success": False,
                     "mensaje": "Error interno del servidor",
-                    "detalle": str(e),
+                    "id_correlacion": id_correlacion,
                 },
             )
 

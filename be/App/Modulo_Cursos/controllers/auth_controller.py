@@ -2,6 +2,11 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from App.Modulo_Cursos.models.usuario_model import Usuario
+from App.Modulo_Cursos.utils.rate_limit import (
+    limite_excedido,
+    limpiar_intentos,
+    registrar_intento_fallido,
+)
 from App.Modulo_Cursos.utils.response import api_response
 from App.Modulo_Cursos.utils.security import create_access_token, verify_password
 
@@ -35,16 +40,36 @@ def _serializar_usuario(usuario: Usuario) -> dict:
     }
 
 
-def login(db: Session, data) -> dict:
+def _limite_excedido() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail=api_response(
+            success=False,
+            message="Demasiados intentos",
+            error="Espera unos minutos antes de volver a intentar iniciar sesión"
+        )
+    )
+
+
+def login(db: Session, data, ip: str = "desconocida") -> dict:
+    clave_intentos = f"{ip}:{data.correo.lower()}"
+
+    if limite_excedido(clave_intentos):
+        raise _limite_excedido()
+
     usuario = db.query(Usuario).options(
         joinedload(Usuario.rol)
     ).filter(Usuario.correo == data.correo).first()
 
     if not usuario or not usuario.password_hash:
+        registrar_intento_fallido(clave_intentos)
         raise _credenciales_invalidas()
 
     if not verify_password(data.password, usuario.password_hash):
+        registrar_intento_fallido(clave_intentos)
         raise _credenciales_invalidas()
+
+    limpiar_intentos(clave_intentos)
 
     rol_nombre = usuario.rol.nombre_rol if usuario.rol else None
 

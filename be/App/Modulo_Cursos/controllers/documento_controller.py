@@ -10,8 +10,22 @@ from App.Modulo_Cursos.models.documento_model import Documento
 from App.Modulo_Cursos.models.usuario_model import Usuario
 from App.Modulo_Cursos.utils.response import api_response
 
-ALLOWED_CONTENT_TYPES = {"application/pdf", "image/jpeg", "image/png"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+# Firmas reales de archivo (magic bytes), no la cabecera Content-Type que el
+# cliente declara libremente y que un archivo malicioso puede falsificar.
+FIRMAS_PERMITIDAS = (
+    (b"%PDF", "application/pdf", ".pdf"),
+    (b"\xff\xd8\xff", "image/jpeg", ".jpg"),
+    (b"\x89PNG\r\n\x1a\n", "image/png", ".png"),
+)
+
+
+def _detectar_tipo_real(contenido: bytes) -> tuple[str, str] | None:
+    for firma, content_type, extension in FIRMAS_PERMITIDAS:
+        if contenido.startswith(firma):
+            return content_type, extension
+    return None
 
 
 def _acceso_denegado() -> HTTPException:
@@ -66,16 +80,6 @@ def subir_documento(
     trabajador = _obtener_trabajador_o_404(db, id_usuario)
     _validar_acceso(current_user, trabajador)
 
-    if file.content_type not in ALLOWED_CONTENT_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=api_response(
-                success=False,
-                message="No se pudo subir el documento",
-                error="Solo se permiten archivos PDF, JPG o PNG"
-            )
-        )
-
     contenido = file.file.read(MAX_FILE_SIZE + 1)
     if len(contenido) > MAX_FILE_SIZE:
         raise HTTPException(
@@ -87,10 +91,21 @@ def subir_documento(
             )
         )
 
+    tipo_real = _detectar_tipo_real(contenido)
+    if tipo_real is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=api_response(
+                success=False,
+                message="No se pudo subir el documento",
+                error="Solo se permiten archivos PDF, JPG o PNG"
+            )
+        )
+    _, extension = tipo_real
+
     carpeta_usuario = os.path.join(settings.UPLOADS_DIR, str(id_usuario))
     os.makedirs(carpeta_usuario, exist_ok=True)
 
-    extension = os.path.splitext(file.filename or "")[1]
     nombre_archivo = f"{uuid.uuid4().hex}{extension}"
     ruta_archivo = os.path.join(carpeta_usuario, nombre_archivo)
 

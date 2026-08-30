@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from App.Modulo_Cursos.config.database import get_db
@@ -14,8 +14,9 @@ router = APIRouter(
 
 
 @router.post("/login")
-def iniciar_sesion(data: LoginRequest, db: Session = Depends(get_db)):
-    return login(db, data)
+def iniciar_sesion(data: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    ip = request.client.host if request.client else "desconocida"
+    return login(db, data, ip)
 
 
 @router.get("/me")
