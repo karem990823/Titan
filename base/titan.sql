@@ -118,7 +118,9 @@ CREATE TABLE disponibilidad(
 );
 CREATE TABLE evaluaciones(
     id_evaluacion INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100)
+    nombre VARCHAR(100),
+    id_curso INT,
+    FOREIGN KEY (id_curso) REFERENCES cursos(id_curso)
 );
 
 CREATE TABLE preguntas(
