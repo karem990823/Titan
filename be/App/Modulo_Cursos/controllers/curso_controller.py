@@ -1,3 +1,6 @@
+import logging
+import uuid
+
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from sqlalchemy.orm import joinedload
@@ -13,6 +16,8 @@ from fastapi import HTTPException, status
 from datetime import date
 from typing import Dict, Any
 from App.Modulo_Cursos.utils.response import api_response
+
+logger = logging.getLogger("titan.errors")
 
 
 def programar_nuevo_curso(db: Session, data):
@@ -158,16 +163,21 @@ def inscribir_participante(db: Session, id_prog: int, id_user: int, current_user
         prog.cupos -= 1
 
         db.add(nueva_inscripcion)
-        db.commit()
+        # No se hace commit aquí: un commit dentro de begin_nested() cierra la
+        # transacción externa y libera el lock de with_for_update() antes de
+        # tiempo, abriendo una ventana de sobreventa de cupos. begin_nested()
+        # libera el SAVEPOINT solo al salir limpio del bloque with.
 
-        return api_response(
-            success=True,
-            message="Inscripción realizada correctamente",
-            data={
-                "estado": "inscrito",
-                "cupos_restantes": prog.cupos
-            }
-        )
+    db.commit()
+
+    return api_response(
+        success=True,
+        message="Inscripción realizada correctamente",
+        data={
+            "estado": "inscrito",
+            "cupos_restantes": prog.cupos
+        }
+    )
 def obtener_calendario(db: Session):
     try:
         # Usamos joinedload para traer los objetos relacionados
@@ -201,10 +211,17 @@ def obtener_calendario(db: Session):
             message="Calendario obtenido con éxito",
             data=resultado
         )
-    except Exception as e:
-        # Esto te dirá el error exacto en la terminal si vuelve a fallar
-        print(f"Error en calendario: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+    except Exception:
+        id_correlacion = uuid.uuid4().hex[:8]
+        logger.exception("Error al obtener el calendario [%s]", id_correlacion)
+        raise HTTPException(
+            status_code=500,
+            detail=api_response(
+                success=False,
+                message="Error interno del servidor",
+                error=f"id_correlacion={id_correlacion}"
+            )
+        )
     
 
 def actualizar_programacion(db: Session, id_programacion: int, data):

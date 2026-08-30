@@ -82,7 +82,14 @@ fi
 if [[ ! -f "${PROJECT_ROOT}/be/.env" ]]; then
   if [[ -f "${PROJECT_ROOT}/be/.env.example" ]]; then
     cp "${PROJECT_ROOT}/be/.env.example" "${PROJECT_ROOT}/be/.env"
-    warn "be/.env no existía — creado automáticamente desde be/.env.example."
+    # ¿Qué? be/.env.example trae un JWT_SECRET_KEY de ejemplo publicado en el
+    #       repo. Si el arranque automatizado lo dejara tal cual, cualquiera que
+    #       lea el código podría firmar un token de Administrador válido.
+    # ¿Para qué? Generar un secreto real por instalación en cada arranque limpio.
+    JWT_SECRET_GENERADO="$(openssl rand -hex 32)"
+    sed -i.bak "s/^JWT_SECRET_KEY=.*/JWT_SECRET_KEY=${JWT_SECRET_GENERADO}/" "${PROJECT_ROOT}/be/.env"
+    rm -f "${PROJECT_ROOT}/be/.env.bak"
+    warn "be/.env no existía — creado automáticamente desde be/.env.example con un JWT_SECRET_KEY generado."
   else
     error "No se encontró be/.env ni be/.env.example. Crea be/.env manualmente."
     exit 1
