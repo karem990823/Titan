@@ -9,6 +9,7 @@ from App.Modulo_Cursos.models.pregunta_model import Pregunta
 from App.Modulo_Cursos.models.evaluacion_presentada_model import EvaluacionPresentada
 from App.Modulo_Cursos.models.resultado_model import Resultado
 from App.Modulo_Cursos.models.usuario_model import Usuario
+from App.Modulo_Cursos.utils.emision_certificado import intentar_emitir_certificado
 from App.Modulo_Cursos.utils.response import api_response
 
 
@@ -136,11 +137,27 @@ def presentar_evaluacion(db: Session, id_evaluacion: int, data):
     nueva_presentada.resultado = Resultado(puntaje=puntaje)
 
     db.add(nueva_presentada)
+    db.flush()
+
+    # HU10: al registrar el resultado, si aprueba y tiene asistencia, se
+    # emite el certificado del curso sin intervención manual.
+    emision = intentar_emitir_certificado(db, evaluacion, data.id_usuario, puntaje)
+
     db.commit()
     db.refresh(nueva_presentada)
 
+    respuesta = _serializar(nueva_presentada)
+    respuesta["certificado_emitido"] = emision["emitido"]
+    respuesta["certificado"] = emision["codigo"]
+
+    mensaje = "Evaluación presentada correctamente"
+    if emision["emitido"]:
+        mensaje = f"Evaluación presentada correctamente. Certificado emitido: {emision['codigo']}"
+    elif emision["motivo"]:
+        mensaje = f"Evaluación presentada correctamente. {emision['motivo']}."
+
     return api_response(
         success=True,
-        message="Evaluación presentada correctamente",
-        data=_serializar(nueva_presentada)
+        message=mensaje,
+        data=respuesta
     )

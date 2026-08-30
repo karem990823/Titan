@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { apiFetch } from "../../api/client";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_EVALUACIONES, COLORS, inputStyle } from "../../constants/color";
-import type { ApiResponse, EvaluacionResumen, ToastType } from "../../types";
+import { API_CURSOS, API_EVALUACIONES, COLORS, inputStyle } from "../../constants/color";
+import type { ApiResponse, Curso, EvaluacionResumen, ToastType } from "../../types";
 
 interface EvaluacionesProps {
   onToast: (message: string, type: ToastType) => void;
@@ -12,7 +12,9 @@ interface EvaluacionesProps {
 
 function Evaluaciones({ onToast }: EvaluacionesProps) {
   const [evaluaciones, setEvaluaciones] = useState<EvaluacionResumen[]>([]);
+  const [cursos, setCursos] = useState<Curso[]>([]);
   const [nombre, setNombre] = useState("");
+  const [idCurso, setIdCurso] = useState("");
   const [loading, setLoading] = useState(false);
 
   const cargar = () => {
@@ -21,18 +23,27 @@ function Evaluaciones({ onToast }: EvaluacionesProps) {
       .catch(() => onToast("No se pudieron cargar las evaluaciones.", "error"));
   };
 
-  useEffect(cargar, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    cargar();
+    apiFetch<Curso[]>(`${API_CURSOS}/lista-cursos`).then(setCursos).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const crear = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!idCurso) {
+      onToast("Selecciona a qué curso pertenece la evaluación.", "error");
+      return;
+    }
     setLoading(true);
     try {
       await apiFetch<ApiResponse<EvaluacionResumen>>(`${API_EVALUACIONES}/`, {
         method: "POST",
-        body: JSON.stringify({ nombre }),
+        body: JSON.stringify({ nombre, id_curso: parseInt(idCurso) }),
       });
       onToast("Evaluación creada correctamente.", "success");
       setNombre("");
+      setIdCurso("");
       cargar();
     } catch (err) {
       onToast(err instanceof Error ? err.message : "Error inesperado", "error");
@@ -50,6 +61,14 @@ function Evaluaciones({ onToast }: EvaluacionesProps) {
           <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Nueva evaluación</p>
           <Field label="Nombre" required>
             <input value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} required />
+          </Field>
+          <Field label="Curso" required>
+            <select value={idCurso} onChange={(e) => setIdCurso(e.target.value)} style={{ ...inputStyle, appearance: "none" }}>
+              <option value="">Seleccionar...</option>
+              {cursos.map((c) => (
+                <option key={c.id_curso} value={c.id_curso}>{c.nombre_curso}</option>
+              ))}
+            </select>
           </Field>
           <button type="submit" disabled={loading} style={{
             background: loading ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
@@ -74,7 +93,10 @@ function Evaluaciones({ onToast }: EvaluacionesProps) {
                 textDecoration: "none", color: COLORS.textPrimary,
               }}
             >
-              <span style={{ fontWeight: 600, fontSize: 14 }}>{ev.nombre}</span>
+              <span style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontWeight: 600, fontSize: 14 }}>{ev.nombre}</span>
+                <span style={{ fontSize: 12, color: COLORS.textSecondary }}>{ev.curso_nombre ?? "Curso no asignado"}</span>
+              </span>
               <span style={{ fontSize: 12, color: COLORS.textSecondary }}>{ev.total_preguntas} preguntas</span>
             </Link>
           ))}

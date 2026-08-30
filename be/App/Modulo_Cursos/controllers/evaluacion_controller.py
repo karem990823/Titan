@@ -25,6 +25,8 @@ def _serializar_lista(item: Evaluacion):
     return {
         "id_evaluacion": item.id_evaluacion,
         "nombre": item.nombre,
+        "id_curso": item.id_curso,
+        "curso_nombre": item.curso.nombre_curso if item.curso else None,
         "total_preguntas": len(item.preguntas)
     }
 
