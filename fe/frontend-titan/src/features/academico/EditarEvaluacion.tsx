@@ -11,7 +11,7 @@ import {
   COLORS,
   inputStyle,
 } from "../../constants/color";
-import type { ApiResponse, EvaluacionDetalle, Participante, TipoDocumento, ToastType } from "../../types";
+import type { ApiResponse, EvaluacionDetalle, Participante, ResultadoPresentacion, TipoDocumento, ToastType } from "../../types";
 
 interface EditarEvaluacionProps {
   onToast: (message: string, type: ToastType) => void;
@@ -120,7 +120,7 @@ function EditarEvaluacion({ onToast }: EditarEvaluacionProps) {
     }
     setPresentando(true);
     try {
-      const res = await apiFetch<ApiResponse<unknown>>(`${API_EVALUACIONES}/${idEvaluacion}/presentar`, {
+      const res = await apiFetch<ApiResponse<ResultadoPresentacion>>(`${API_EVALUACIONES}/${idEvaluacion}/presentar`, {
         method: "POST",
         body: JSON.stringify({
           id_usuario: participante.id_usuario,
@@ -130,7 +130,10 @@ function EditarEvaluacion({ onToast }: EditarEvaluacionProps) {
           })),
         }),
       });
-      onToast(res.message || "Evaluación calificada correctamente.", "success");
+      onToast(
+        res.message || "Evaluación calificada correctamente.",
+        res.data.certificado_emitido ? "success" : "warning"
+      );
       setParticipante(null);
       setSeleccion({});
       setNumero("");

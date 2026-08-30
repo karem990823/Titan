@@ -134,7 +134,19 @@ export interface Certificado {
 export interface EvaluacionResumen {
   id_evaluacion: number;
   nombre: string;
+  id_curso: number;
+  curso_nombre: string | null;
   total_preguntas: number;
+}
+
+export interface ResultadoPresentacion {
+  id_presentada: number;
+  id_usuario: number;
+  id_evaluacion: number;
+  fecha: string;
+  resultado: { id_resultado: number; id_presentada: number; puntaje: number } | null;
+  certificado_emitido: boolean;
+  certificado: string | null;
 }
 
 export interface RespuestaItem {

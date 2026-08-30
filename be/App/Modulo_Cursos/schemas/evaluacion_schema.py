@@ -10,6 +10,7 @@ from App.Modulo_Cursos.schemas.pregunta_schema import (
 
 class EvaluacionBase(BaseModel):
     nombre: str
+    id_curso: int
 
 
 class EvaluacionCreate(EvaluacionBase):
@@ -18,6 +19,7 @@ class EvaluacionCreate(EvaluacionBase):
 
 class EvaluacionUpdate(BaseModel):
     nombre: Optional[str] = None
+    id_curso: Optional[int] = None
 
 
 class EvaluacionResponse(EvaluacionBase):
