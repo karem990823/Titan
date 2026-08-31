@@ -1,9 +1,11 @@
 name: CI - Docker Compose (db + be + fe)
 
-# Construye las 2 imágenes propias del proyecto (be y fe; "db" usa la imagen
-# oficial mysql:8.4.11, no hay nada que construir ahí) y levanta el stack
-# completo con docker compose, igual que en desarrollo local. Si esto pasa,
-# significa que el PR no rompió el pipeline de despliegue.
+# Audita dependencias (pnpm audit + pip-audit), construye las 2 imágenes
+# propias del proyecto (be y fe; "db" usa la imagen oficial mysql:8.4.11, no
+# hay nada que construir ahí), levanta el stack completo con docker compose
+# igual que en desarrollo local, y corre las pruebas automáticas del backend.
+# Si esto pasa, significa que el PR no rompió el pipeline de despliegue ni
+# introdujo una dependencia vulnerable.
 on:
   pull_request:
     branches: [develop, main]
@@ -19,8 +21,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          # pnpm/action-setup busca el campo packageManager en el
+          # package.json de la RAÍZ del checkout; el nuestro vive en
+          # fe/frontend-titan/package.json, así que no lo detecta solo y
+          # falla de inmediato sin esto. Versión exacta = la misma que fija
+          # "packageManager" en fe/frontend-titan/package.json.
+          version: 9.12.0
+
+      - name: Auditoría de dependencias del frontend
+        working-directory: fe/frontend-titan
+        run: pnpm audit --audit-level moderate
+
+      - name: Auditoría de dependencias del backend
+        run: |
+          pip install --quiet pip-audit
+          # PYSEC-2026-1325 (ecdsa, transitivo vía python-jose) no tiene fix
+          # publicado en ningún lado a la fecha — documentado en el README y
+          # en la auditoría del profesor, no ignorado a ciegas. pip-audit
+          # sale con código 1 aunque un hallazgo no tenga fix disponible, así
+          # que sin este --ignore-vuln el CI nunca pasaría por este único
+          # caso conocido; cualquier vulnerabilidad NUEVA sigue rompiendo el
+          # build.
+          pip-audit -r be/requirements.txt --ignore-vuln PYSEC-2026-1325
+
       - name: Construir y levantar db + be + fe
         run: bash scripts/start.sh
+
+      - name: Pruebas automáticas del backend
+        run: docker compose exec -T be pytest -v
 
       - name: Estado de los contenedores
         if: always()
