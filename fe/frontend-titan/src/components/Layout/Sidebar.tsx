@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import logo from "../../assets/logo.jpeg";
+import logo from "../../assets/logo.webp";
 import { COLORS } from "../../constants/color";
 import { useAuth } from "../../features/auth/useAuth";
 import type { RolNombre } from "../../types";
@@ -28,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/admin/usuarios", label: "Usuarios", icon: "🔑", roles: ["Administrador"] },
   { to: "/admin/facturacion", label: "Facturación", icon: "💵", roles: ["Administrador"] },
   { to: "/admin/inventario", label: "Inventario", icon: "🧰", roles: ["Administrador"] },
+  { to: "/admin/reportes", label: "Reportes", icon: "📈", roles: ["Administrador", "Instructor"] },
 ];
 
 function Sidebar() {

@@ -37,6 +37,7 @@ import MisCertificados from "./features/empresa/MisCertificados";
 import UsuariosAdmin from "./features/admin/UsuariosAdmin";
 import Facturacion from "./features/admin/Facturacion";
 import Inventario from "./features/admin/Inventario";
+import Reportes from "./features/admin/Reportes";
 
 function RedirectHome() {
   const { usuario } = useAuth();
@@ -206,6 +207,14 @@ function App() {
             element={
               <RequireRole roles={["Administrador"]}>
                 <Inventario onToast={showToast} />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/admin/reportes"
+            element={
+              <RequireRole roles={["Administrador", "Instructor"]}>
+                <Reportes onToast={showToast} />
               </RequireRole>
             }
           />

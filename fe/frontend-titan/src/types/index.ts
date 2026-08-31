@@ -266,3 +266,29 @@ export interface Accidente {
   tipo_accidente: string | null;
   descripcion: string | null;
 }
+
+// --- Reportes y cierre mensual (admin/instructor) ---
+
+export interface Reporte {
+  id_reporte: number;
+  tipo: string;
+  fecha: string;
+  contenido_json: string;
+  generado_por: number;
+  fecha_creacion: string;
+}
+
+export interface ConsolidadoParticipante {
+  id_usuario: number;
+  trabajador: string | null;
+  id_curso: number;
+  curso: string | null;
+  incluido: boolean;
+  motivo_exclusion: string | null;
+}
+
+export interface ResultadoCierreMes {
+  id_consolidado: number;
+  incluidos: ConsolidadoParticipante[];
+  excluidos: ConsolidadoParticipante[];
+}

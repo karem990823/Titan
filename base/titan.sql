@@ -207,6 +207,7 @@ CREATE TABLE asistencias(
     id_asistencia INT PRIMARY KEY AUTO_INCREMENT,
     id_inscripcion INT,
     asistio BOOLEAN,
+    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id_inscripcion) ON DELETE CASCADE
 );
 
@@ -217,4 +218,32 @@ CREATE TABLE certificados_indumentaria(
     fecha_vencimiento DATE,
     estado ENUM('apto','no_apto'),
     FOREIGN KEY (id_indumentaria) REFERENCES indumentaria(id_indumentaria)
+);
+CREATE TABLE reportes(
+    id_reporte INT PRIMARY KEY AUTO_INCREMENT,
+    tipo VARCHAR(20),
+    fecha DATE,
+    contenido_json TEXT,
+    generado_por INT,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (generado_por) REFERENCES usuarios(id_usuario)
+);
+CREATE TABLE consolidados_mensuales(
+    id_consolidado INT PRIMARY KEY AUTO_INCREMENT,
+    mes INT,
+    anio INT,
+    generado_por INT,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (generado_por) REFERENCES usuarios(id_usuario)
+);
+CREATE TABLE consolidado_participantes(
+    id_consolidado_participante INT PRIMARY KEY AUTO_INCREMENT,
+    id_consolidado INT,
+    id_usuario INT,
+    id_curso INT,
+    incluido BOOLEAN,
+    motivo_exclusion VARCHAR(200),
+    FOREIGN KEY (id_consolidado) REFERENCES consolidados_mensuales(id_consolidado) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+    FOREIGN KEY (id_curso) REFERENCES cursos(id_curso)
 );
