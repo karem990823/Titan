@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiFetch } from "../../api/client";
+import ConfirmModal from "../../components/UI/ConfirmModal";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
 import {
@@ -38,6 +39,7 @@ function EditarEvaluacion({ onToast }: EditarEvaluacionProps) {
   const [buscando, setBuscando] = useState(false);
   const [seleccion, setSeleccion] = useState<Record<number, number>>({});
   const [presentando, setPresentando] = useState(false);
+  const [preguntaAEliminar, setPreguntaAEliminar] = useState<number | null>(null);
 
   const cargarEvaluacion = () => {
     if (!idEvaluacion) return;
@@ -91,6 +93,8 @@ function EditarEvaluacion({ onToast }: EditarEvaluacionProps) {
       cargarEvaluacion();
     } catch (err) {
       onToast(err instanceof Error ? err.message : "Error inesperado", "error");
+    } finally {
+      setPreguntaAEliminar(null);
     }
   };
 
@@ -161,7 +165,7 @@ function EditarEvaluacion({ onToast }: EditarEvaluacionProps) {
             <div key={p.id_pregunta} style={{ border: `1px solid ${COLORS.borderGray}`, borderRadius: 8, padding: "12px 16px", marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                 <p style={{ fontWeight: 600, fontSize: 13, margin: "0 0 8px 0" }}>{p.pregunta}</p>
-                <button onClick={() => eliminarPregunta(p.id_pregunta)} style={{ background: "none", border: "none", color: COLORS.errorText, cursor: "pointer", fontSize: 12 }}>
+                <button onClick={() => setPreguntaAEliminar(p.id_pregunta)} style={{ background: "none", border: "none", color: COLORS.errorText, cursor: "pointer", fontSize: 12 }}>
                   Eliminar
                 </button>
               </div>
@@ -263,6 +267,15 @@ function EditarEvaluacion({ onToast }: EditarEvaluacionProps) {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={preguntaAEliminar !== null}
+        title="Eliminar pregunta"
+        message="Esta acción no se puede deshacer. ¿Eliminar esta pregunta y sus respuestas?"
+        confirmLabel="Eliminar"
+        onCancel={() => setPreguntaAEliminar(null)}
+        onConfirm={() => preguntaAEliminar !== null && eliminarPregunta(preguntaAEliminar)}
+      />
     </div>
   );
 }
