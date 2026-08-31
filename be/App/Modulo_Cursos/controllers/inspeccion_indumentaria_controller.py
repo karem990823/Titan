@@ -62,7 +62,9 @@ def listar_inspecciones(db: Session):
             "fecha": i.fecha.strftime("%Y-%m-%d") if i.fecha else None,
             "indumentaria": i.indumentaria.nombre if i.indumentaria else None,
             "usuario": f"{i.usuario.nombre} {i.usuario.apellido}" if i.usuario else None,
-            "observaciones": i.observaciones
+            "observaciones": i.observaciones,
+            "resultado": i.resultado,
+            "id_indumentaria": i.id_indumentaria,
         } for i in items]
     )
 
@@ -77,7 +79,8 @@ def obtener_inspeccion(db: Session, id_inspeccion: int):
             "fecha": item.fecha.strftime("%Y-%m-%d") if item.fecha else None,
             "id_indumentaria": item.id_indumentaria,
             "id_usuario": item.id_usuario,
-            "observaciones": item.observaciones
+            "observaciones": item.observaciones,
+            "resultado": item.resultado,
         }
     )
 

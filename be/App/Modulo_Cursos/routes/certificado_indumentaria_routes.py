@@ -11,7 +11,9 @@ from App.Modulo_Cursos.controllers.certificado_indumentaria_controller import (
     obtener_certificado_indumentaria,
     crear_certificado_indumentaria,
     actualizar_certificado_indumentaria,
-    eliminar_certificado_indumentaria
+    eliminar_certificado_indumentaria,
+    generar_desde_inspeccion,
+    descargar_certificado_indumentaria,
 )
 from App.Modulo_Cursos.deps import require_admin
 from App.Modulo_Cursos.models.usuario_model import Usuario
@@ -45,3 +47,13 @@ def actualizar(id_certificado_equipo: int, data: CertificadoIndumentariaUpdate, 
 @router.delete("/{id_certificado_equipo}")
 def eliminar(id_certificado_equipo: int, db: Session = Depends(get_db), current_user: Usuario = Depends(require_admin)):
     return eliminar_certificado_indumentaria(db, id_certificado_equipo)
+
+
+@router.post("/generar/{id_indumentaria}")
+def generar(id_indumentaria: int, db: Session = Depends(get_db), current_user: Usuario = Depends(require_admin)):
+    return generar_desde_inspeccion(db, id_indumentaria)
+
+
+@router.get("/{id_certificado_equipo}/descargar")
+def descargar(id_certificado_equipo: int, db: Session = Depends(get_db), current_user: Usuario = Depends(require_admin)):
+    return descargar_certificado_indumentaria(db, id_certificado_equipo)

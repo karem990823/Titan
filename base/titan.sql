@@ -57,6 +57,7 @@ CREATE TABLE inspecciones_indumentaria(
     id_indumentaria INT,
     id_usuario INT,
     observaciones VARCHAR(200),
+    resultado ENUM('apto', 'no_apto'),
     FOREIGN KEY (id_indumentaria) REFERENCES indumentaria(id_indumentaria),
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
@@ -165,8 +166,28 @@ CREATE TABLE accidentes(
     id_trabajador INT,
     id_tipo_accidente INT,
     descripcion TEXT,
+    estado ENUM('abierto', 'en_seguimiento', 'cerrado') DEFAULT 'abierto',
     FOREIGN KEY (id_trabajador) REFERENCES usuarios(id_usuario) ON DELETE RESTRICT,
     FOREIGN KEY (id_tipo_accidente) REFERENCES tipos_accidente(id_tipo_accidente)
+);
+CREATE TABLE historial_estado_incidente(
+    id_historial INT PRIMARY KEY AUTO_INCREMENT,
+    id_accidente INT,
+    estado_anterior ENUM('abierto', 'en_seguimiento', 'cerrado'),
+    estado_nuevo ENUM('abierto', 'en_seguimiento', 'cerrado'),
+    id_usuario INT,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_accidente) REFERENCES accidentes(id_accidente) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+);
+CREATE TABLE evidencias_incidente(
+    id_evidencia INT PRIMARY KEY AUTO_INCREMENT,
+    id_accidente INT,
+    nombre VARCHAR(150),
+    ruta_archivo VARCHAR(300),
+    tipo VARCHAR(50),
+    fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_accidente) REFERENCES accidentes(id_accidente) ON DELETE CASCADE
 );
 CREATE TABLE tipos_alerta(
     id_tipo_alerta INT PRIMARY KEY AUTO_INCREMENT,
