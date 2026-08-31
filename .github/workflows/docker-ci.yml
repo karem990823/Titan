@@ -38,7 +38,14 @@ jobs:
       - name: Auditoría de dependencias del backend
         run: |
           pip install --quiet pip-audit
-          pip-audit -r be/requirements.txt
+          # PYSEC-2026-1325 (ecdsa, transitivo vía python-jose) no tiene fix
+          # publicado en ningún lado a la fecha — documentado en el README y
+          # en la auditoría del profesor, no ignorado a ciegas. pip-audit
+          # sale con código 1 aunque un hallazgo no tenga fix disponible, así
+          # que sin este --ignore-vuln el CI nunca pasaría por este único
+          # caso conocido; cualquier vulnerabilidad NUEVA sigue rompiendo el
+          # build.
+          pip-audit -r be/requirements.txt --ignore-vuln PYSEC-2026-1325
 
       - name: Construir y levantar db + be + fe
         run: bash scripts/start.sh

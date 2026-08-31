@@ -128,7 +128,7 @@ cd fe/frontend-titan && pnpm audit --audit-level moderate
 cd be && uvx pip-audit -r requirements.txt
 ```
 
-El CI (`.github/workflows/docker-ci.yml`) corre ambos comandos en cada PR hacia `develop`/`main`.
+El CI (`.github/workflows/docker-ci.yml`) corre ambos comandos en cada PR hacia `develop`/`main` (ignorando explícitamente `PYSEC-2026-1325` de `ecdsa`, transitivo vía `python-jose` — sin fix publicado en ningún lado a la fecha; cualquier vulnerabilidad nueva sigue rompiendo el build).
 
 ## Documentación
 
