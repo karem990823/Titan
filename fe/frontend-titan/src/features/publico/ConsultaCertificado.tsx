@@ -4,7 +4,7 @@ import { apiFetch, apiFetchBlob, descargarBlob } from "../../api/client";
 import Field from "../../components/UI/Field";
 import { API_CERTIFICADOS, API_TIPOS_IDENTIFICACION, COLORS, inputStyle } from "../../constants/color";
 import type { ApiResponse, CertificadoPublico, TipoDocumento } from "../../types";
-import logo from "../../assets/logo.jpeg";
+import logo from "../../assets/logo.webp";
 
 function ConsultaCertificado() {
   const [tiposDoc, setTiposDoc] = useState<TipoDocumento[]>([]);
