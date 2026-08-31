@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../api/client";
+import ConfirmModal from "../../components/UI/ConfirmModal";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
 import { API_ROLES, API_TIPOS_IDENTIFICACION, API_USUARIOS, COLORS, inputStyle } from "../../constants/color";
@@ -45,6 +46,7 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
   const [tiposDoc, setTiposDoc] = useState<TipoDocumento[]>([]);
   const [form, setForm] = useState<FormState>(FORM_VACIO);
   const [loading, setLoading] = useState(false);
+  const [usuarioADesactivar, setUsuarioADesactivar] = useState<UsuarioAdminType | null>(null);
 
   const empresas = usuarios.filter((u) => u.tipo_registro === "empresa");
 
@@ -99,6 +101,8 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
       cargarUsuarios();
     } catch (err) {
       onToast(err instanceof Error ? err.message : "Error inesperado", "error");
+    } finally {
+      setUsuarioADesactivar(null);
     }
   };
 
@@ -222,7 +226,7 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
                     </td>
                     <td style={{ padding: "10px 14px" }}>
                       {u.estado_activo && (
-                        <button onClick={() => desactivar(u.id_usuario)} style={{ background: "none", border: "none", color: COLORS.errorText, cursor: "pointer", fontSize: 12 }}>
+                        <button onClick={() => setUsuarioADesactivar(u)} style={{ background: "none", border: "none", color: COLORS.errorText, cursor: "pointer", fontSize: 12 }}>
                           Desactivar
                         </button>
                       )}
@@ -234,6 +238,15 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={usuarioADesactivar !== null}
+        title="Desactivar cuenta"
+        message={`¿Desactivar la cuenta de ${usuarioADesactivar?.nombre ?? ""}? No podrá iniciar sesión hasta que se reactive.`}
+        confirmLabel="Desactivar"
+        onCancel={() => setUsuarioADesactivar(null)}
+        onConfirm={() => usuarioADesactivar && desactivar(usuarioADesactivar.id_usuario)}
+      />
     </div>
   );
 }

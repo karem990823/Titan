@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Date, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 from App.Modulo_Cursos.config.database import Base
 
@@ -12,6 +12,7 @@ class Accidente(Base):
     id_trabajador = Column(Integer, ForeignKey("usuarios.id_usuario"))
     id_tipo_accidente = Column(Integer, ForeignKey("tipos_accidente.id_tipo_accidente"))
     descripcion = Column(Text)
+    estado = Column(Enum("abierto", "en_seguimiento", "cerrado"), default="abierto")
 
     trabajador = relationship("Usuario")
     tipo_accidente = relationship("TipoAccidente", back_populates="accidentes")

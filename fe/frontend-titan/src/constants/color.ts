@@ -19,6 +19,7 @@ export const API_FACTURAS = "/api/facturas";
 export const API_METODOS_PAGO = "/api/metodos-pago";
 export const API_PAGOS = "/api/pagos";
 export const API_INDUMENTARIA = "/api/indumentaria";
+export const API_CERTIFICADOS_INDUMENTARIA = "/api/certificados-indumentaria";
 export const API_INSPECCIONES_INDUMENTARIA = "/api/inspecciones-indumentaria";
 export const API_SALUD = "/api/salud";
 export const API_ASISTENCIAS = "/api/asistencias";

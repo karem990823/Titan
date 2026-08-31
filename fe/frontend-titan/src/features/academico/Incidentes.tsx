@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../api/client";
+import ConfirmModal from "../../components/UI/ConfirmModal";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
 import {
@@ -31,6 +32,9 @@ function Incidentes({ onToast }: IncidentesProps) {
   const [idTipoAccidente, setIdTipoAccidente] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [guardando, setGuardando] = useState(false);
+
+  const [incidenteACerrar, setIncidenteACerrar] = useState<Accidente | null>(null);
+  const [conEvidencia, setConEvidencia] = useState<Set<number>>(new Set());
 
   const cargarIncidentes = () => {
     apiFetch<ApiResponse<Accidente[]>>(`${API_ACCIDENTES}/`)
@@ -96,6 +100,53 @@ function Incidentes({ onToast }: IncidentesProps) {
     } finally {
       setGuardando(false);
     }
+  };
+
+  const cambiarEstado = async (idAccidente: number, nuevoEstado: string) => {
+    try {
+      await apiFetch(`${API_ACCIDENTES}/${idAccidente}/estado`, {
+        method: "PATCH",
+        body: JSON.stringify({ nuevo_estado: nuevoEstado }),
+      });
+      onToast("Estado actualizado.", "success");
+      cargarIncidentes();
+    } catch (err) {
+      onToast(err instanceof Error ? err.message : "Error inesperado", "error");
+    } finally {
+      setIncidenteACerrar(null);
+    }
+  };
+
+  const avanzarEstado = (a: Accidente) => {
+    if (a.estado === "abierto") {
+      cambiarEstado(a.id_accidente, "en_seguimiento");
+    } else if (a.estado === "en_seguimiento") {
+      setIncidenteACerrar(a);
+    }
+  };
+
+  const subirEvidencia = async (idAccidente: number, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("nombre", file.name);
+    try {
+      await apiFetch(`${API_ACCIDENTES}/${idAccidente}/evidencia`, { method: "POST", body: formData });
+      onToast("Evidencia adjuntada correctamente.", "success");
+      setConEvidencia((prev) => new Set(prev).add(idAccidente));
+    } catch (err) {
+      onToast(err instanceof Error ? err.message : "Error inesperado", "error");
+    }
+  };
+
+  const ESTADO_LABEL: Record<string, string> = {
+    abierto: "Abierto",
+    en_seguimiento: "En seguimiento",
+    cerrado: "Cerrado",
+  };
+  const ESTADO_COLOR: Record<string, { bg: string; text: string }> = {
+    abierto: { bg: COLORS.warningBg, text: COLORS.warningText },
+    en_seguimiento: { bg: "#E6F1FB", text: "#185FA5" },
+    cerrado: { bg: COLORS.successBg, text: COLORS.successText },
   };
 
   return (
@@ -180,21 +231,65 @@ function Incidentes({ onToast }: IncidentesProps) {
                   <th style={{ padding: "10px 16px" }}>Trabajador</th>
                   <th style={{ padding: "10px 16px" }}>Tipo</th>
                   <th style={{ padding: "10px 16px" }}>Fecha</th>
+                  <th style={{ padding: "10px 16px" }}>Estado</th>
+                  <th style={{ padding: "10px 16px" }}>Evidencia</th>
                 </tr>
               </thead>
               <tbody>
-                {incidentes.map((a) => (
-                  <tr key={a.id_accidente} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
-                    <td style={{ padding: "10px 16px" }}>{a.trabajador ?? `#${a.id_trabajador}`}</td>
-                    <td style={{ padding: "10px 16px" }}>{a.tipo_accidente ?? `#${a.id_tipo_accidente}`}</td>
-                    <td style={{ padding: "10px 16px" }}>{a.fecha}</td>
-                  </tr>
-                ))}
+                {incidentes.map((a) => {
+                  const colores = ESTADO_COLOR[a.estado] ?? ESTADO_COLOR.abierto;
+                  return (
+                    <tr key={a.id_accidente} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
+                      <td style={{ padding: "10px 16px" }}>{a.trabajador ?? `#${a.id_trabajador}`}</td>
+                      <td style={{ padding: "10px 16px" }}>{a.tipo_accidente ?? `#${a.id_tipo_accidente}`}</td>
+                      <td style={{ padding: "10px 16px" }}>{a.fecha}</td>
+                      <td style={{ padding: "10px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{
+                            fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 999,
+                            background: colores.bg, color: colores.text,
+                          }}>
+                            {ESTADO_LABEL[a.estado] ?? a.estado}
+                          </span>
+                          {a.estado !== "cerrado" && (
+                            <button onClick={() => avanzarEstado(a)} style={{ background: "none", border: "none", color: COLORS.blue, cursor: "pointer", fontSize: 12 }}>
+                              {a.estado === "abierto" ? "Iniciar seguimiento" : "Cerrar"}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: "10px 16px" }}>
+                        <label style={{ fontSize: 12, color: COLORS.blue, cursor: "pointer" }}>
+                          {conEvidencia.has(a.id_accidente) ? "✔ adjuntada" : "Adjuntar"}
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) subirEvidencia(a.id_accidente, file);
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={incidenteACerrar !== null}
+        title="Cerrar incidente"
+        message="Un incidente cerrado no puede reabrirse. ¿Confirmas el cierre?"
+        confirmLabel="Cerrar incidente"
+        onCancel={() => setIncidenteACerrar(null)}
+        onConfirm={() => incidenteACerrar && cambiarEstado(incidenteACerrar.id_accidente, "cerrado")}
+      />
     </div>
   );
 }

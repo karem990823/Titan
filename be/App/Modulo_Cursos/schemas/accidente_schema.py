@@ -1,6 +1,12 @@
 from datetime import date
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel
+
+EstadoIncidente = Literal["abierto", "en_seguimiento", "cerrado"]
+
+
+class CambiarEstadoRequest(BaseModel):
+    nuevo_estado: EstadoIncidente
 
 
 class AccidenteBase(BaseModel):

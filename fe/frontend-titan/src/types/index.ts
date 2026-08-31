@@ -215,6 +215,7 @@ export interface InspeccionIndumentaria {
   id_indumentaria: number;
   id_usuario: number;
   observaciones: string | null;
+  resultado: "apto" | "no_apto";
 }
 
 // --- Gestión de usuarios (admin) ---
@@ -256,6 +257,8 @@ export interface TipoAccidente {
   nombre: string;
 }
 
+export type EstadoIncidente = "abierto" | "en_seguimiento" | "cerrado";
+
 export interface Accidente {
   id_accidente: number;
   fecha: string;
@@ -265,4 +268,5 @@ export interface Accidente {
   id_tipo_accidente: number;
   tipo_accidente: string | null;
   descripcion: string | null;
+  estado: EstadoIncidente;
 }
