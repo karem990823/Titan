@@ -1,9 +1,9 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class IndumentariaBase(BaseModel):
-    nombre: str
+    nombre: str = Field(min_length=1)
     descripcion: Optional[str] = None
 
 
@@ -12,7 +12,7 @@ class IndumentariaCreate(IndumentariaBase):
 
 
 class IndumentariaUpdate(BaseModel):
-    nombre: Optional[str] = None
+    nombre: Optional[str] = Field(default=None, min_length=1)
     descripcion: Optional[str] = None
 
 
