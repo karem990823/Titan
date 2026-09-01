@@ -9,6 +9,7 @@ from App.Modulo_Cursos.schemas.detalle_factura_schema import DetalleFacturaCreat
 class FacturaBase(BaseModel):
     fecha: date
     id_empresa: int
+    numero_factura_externa: Optional[str] = None
 
 
 class FacturaCreate(FacturaBase):
@@ -18,6 +19,7 @@ class FacturaCreate(FacturaBase):
 class FacturaUpdate(BaseModel):
     fecha: Optional[date] = None
     id_empresa: Optional[int] = None
+    numero_factura_externa: Optional[str] = None
 
 
 class FacturaResponse(FacturaBase):

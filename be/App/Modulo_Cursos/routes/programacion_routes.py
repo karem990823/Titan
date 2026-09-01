@@ -46,6 +46,14 @@ def get_programaciones_por_curso(
         "cupos": p.cupos
     } for p in programaciones]
 
+@router.get("/{id_programacion}/inscritos")
+def get_inscritos(
+    id_programacion: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    return curso_controller.listar_inscritos_programacion(db, id_programacion)
+
 @router.put("/{id_programacion}")
 def actualizar(
     id_programacion: int,

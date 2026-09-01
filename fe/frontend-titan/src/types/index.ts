@@ -180,12 +180,17 @@ export interface ResultadoItem {
 
 // --- Facturación (admin) ---
 
+export type EstadoFactura = "pagada" | "parcial" | "pendiente";
+
 export interface FacturaResumen {
   id_factura: number;
   fecha: string;
   id_empresa: number;
   empresa: string | null;
+  numero_factura_externa: string | null;
   total: number;
+  saldo_pendiente: number;
+  estado: EstadoFactura;
 }
 
 export interface MetodoPago {
@@ -295,4 +300,22 @@ export interface ResultadoCierreMes {
   id_consolidado: number;
   incluidos: ConsolidadoParticipante[];
   excluidos: ConsolidadoParticipante[];
+}
+
+// --- Dashboard ---
+
+export interface ResumenDashboard {
+  cursos_programados: number;
+  participantes: number;
+  cursos_hoy: number;
+  inscripciones: number;
+}
+
+// --- Inscritos por programación (Calendario) ---
+
+export interface InscritoPrograma {
+  id_usuario: number;
+  nombre: string | null;
+  tipo_documento: string | null;
+  numero_identificacion: number | null;
 }

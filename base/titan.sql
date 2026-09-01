@@ -70,6 +70,7 @@ CREATE TABLE facturas(
     id_factura INT PRIMARY KEY AUTO_INCREMENT,
     fecha DATE,
     id_empresa INT,
+    numero_factura_externa VARCHAR(50),
     FOREIGN KEY (id_empresa) REFERENCES usuarios(id_usuario)
 );
 
