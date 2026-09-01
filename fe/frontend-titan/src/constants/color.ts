@@ -26,6 +26,7 @@ export const API_ASISTENCIAS = "/api/asistencias";
 export const API_ACCIDENTES = "/api/accidentes";
 export const API_TIPOS_ACCIDENTE = "/api/tipos-accidente";
 export const API_REPORTES = "/api/reportes";
+export const API_DASHBOARD = "/api/dashboard";
 
 export const COLORS = {
   red: "#C0161C",
