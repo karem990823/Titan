@@ -20,7 +20,26 @@ from App.Modulo_Cursos.utils.response import api_response
 logger = logging.getLogger("titan.errors")
 
 
+def _validar_instructor(db: Session, id_usuario: int):
+    usuario = db.query(Usuario).options(joinedload(Usuario.rol)).filter(
+        Usuario.id_usuario == id_usuario
+    ).first()
+
+    rol_actual = usuario.rol.nombre_rol if usuario and usuario.rol else None
+    if rol_actual != "Instructor":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=api_response(
+                success=False,
+                message="No se pudo programar el curso",
+                error="El usuario indicado no es un Instructor"
+            )
+        )
+
+
 def programar_nuevo_curso(db: Session, data):
+    _validar_instructor(db, data.id_usuario)
+
     conflicto = db.query(ProgramacionCurso).filter(
         and_(
             ProgramacionCurso.id_usuario == data.id_usuario,
@@ -193,7 +212,7 @@ def obtener_calendario(db: Session):
             
             # Usamos 'nombres' y 'apellidos' con S como está en tu SQL
             if p.instructor:
-                nombre_inst = f"{p.instructor.nombre} {p.instructor.apellido}"
+                nombre_inst = f"{p.instructor.nombre} {p.instructor.apellido or ''}".strip()
             else:
                 nombre_inst = "Instructor no asignado"
 
@@ -236,6 +255,7 @@ def actualizar_programacion(db: Session, id_programacion: int, data):
             detail="Programación no encontrada"
         )
 
+    _validar_instructor(db, data.id_usuario)
 
     programacion.id_curso = data.id_curso
     programacion.id_usuario = data.id_usuario
@@ -256,6 +276,26 @@ def actualizar_programacion(db: Session, id_programacion: int, data):
         }
     )
 
+
+
+def listar_inscritos_programacion(db: Session, id_programacion: int):
+    inscritos = db.query(Inscripcion).options(
+        joinedload(Inscripcion.usuario).joinedload(Usuario.tipo_documento)
+    ).filter(
+        Inscripcion.id_programacion == id_programacion,
+        Inscripcion.estado == "inscrito",
+    ).all()
+
+    return api_response(
+        success=True,
+        message="Inscritos obtenidos correctamente",
+        data=[{
+            "id_usuario": i.id_usuario,
+            "nombre": f"{i.usuario.nombre} {i.usuario.apellido or ''}".strip() if i.usuario else None,
+            "tipo_documento": i.usuario.tipo_documento.nombre if i.usuario and i.usuario.tipo_documento else None,
+            "numero_identificacion": i.usuario.numero_identificacion if i.usuario else None,
+        } for i in inscritos]
+    )
 
 
 def eliminar_programacion(db: Session, id_programacion: int):

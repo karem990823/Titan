@@ -310,3 +310,12 @@ export interface ResumenDashboard {
   cursos_hoy: number;
   inscripciones: number;
 }
+
+// --- Inscritos por programación (Calendario) ---
+
+export interface InscritoPrograma {
+  id_usuario: number;
+  nombre: string | null;
+  tipo_documento: string | null;
+  numero_identificacion: number | null;
+}
