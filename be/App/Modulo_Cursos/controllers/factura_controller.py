@@ -42,29 +42,46 @@ def _calcular_saldo(factura: Factura) -> Decimal:
     return _calcular_total(factura) - total_pagado
 
 
+def _estado_pago(total: Decimal, saldo: Decimal) -> str:
+    if saldo <= 0:
+        return "pagada"
+    if saldo >= total:
+        return "pendiente"
+    return "parcial"
+
+
 def _serializar_lista(item: Factura):
+    total = _calcular_total(item)
+    saldo = _calcular_saldo(item)
     return {
         "id_factura": item.id_factura,
         "fecha": item.fecha.strftime("%Y-%m-%d") if item.fecha else None,
         "id_empresa": item.id_empresa,
         "empresa": item.empresa.nombre if item.empresa else None,
-        "total": _calcular_total(item)
+        "numero_factura_externa": item.numero_factura_externa,
+        "total": total,
+        "saldo_pendiente": saldo,
+        "estado": _estado_pago(total, saldo),
     }
 
 
 def _serializar_detalle(item: Factura):
+    total = _calcular_total(item)
+    saldo = _calcular_saldo(item)
     return {
         "id_factura": item.id_factura,
         "fecha": item.fecha.strftime("%Y-%m-%d") if item.fecha else None,
         "id_empresa": item.id_empresa,
+        "numero_factura_externa": item.numero_factura_externa,
         "detalles": [{
             "id_detalle": d.id_detalle,
             "id_factura": d.id_factura,
             "descripcion": d.descripcion,
             "valor": d.valor
         } for d in item.detalles],
-        "total": _calcular_total(item),
-        "saldo_pendiente": _calcular_saldo(item)
+        "total": total,
+        "saldo_pendiente": saldo,
+        "estado": _estado_pago(total, saldo),
     }
 
 
@@ -90,7 +107,8 @@ def _obtener_o_404(db: Session, id_factura: int) -> Factura:
 def listar_facturas(db: Session):
     items = db.query(Factura).options(
         joinedload(Factura.detalles),
-        joinedload(Factura.empresa)
+        joinedload(Factura.empresa),
+        joinedload(Factura.pagos)
     ).all()
 
     return api_response(

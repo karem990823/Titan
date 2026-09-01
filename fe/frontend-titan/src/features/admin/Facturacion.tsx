@@ -3,11 +3,23 @@ import { apiFetch } from "../../api/client";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
 import { API_FACTURAS, API_METODOS_PAGO, API_PAGOS, API_USUARIOS, COLORS, inputStyle } from "../../constants/color";
-import type { ApiResponse, FacturaResumen, MetodoPago, ToastType, UsuarioAdmin } from "../../types";
+import type { ApiResponse, EstadoFactura, FacturaResumen, MetodoPago, ToastType, UsuarioAdmin } from "../../types";
 
 interface FacturacionProps {
   onToast: (message: string, type: ToastType) => void;
 }
+
+const ESTADO_LABEL: Record<EstadoFactura, string> = {
+  pagada: "Pagada",
+  parcial: "Pago parcial",
+  pendiente: "Pendiente",
+};
+
+const ESTADO_COLOR: Record<EstadoFactura, { bg: string; text: string }> = {
+  pagada: { bg: COLORS.successBg, text: COLORS.successText },
+  parcial: { bg: COLORS.warningBg, text: COLORS.warningText },
+  pendiente: { bg: COLORS.errorBg, text: COLORS.errorText },
+};
 
 function Facturacion({ onToast }: FacturacionProps) {
   const [facturas, setFacturas] = useState<FacturaResumen[]>([]);
@@ -15,6 +27,7 @@ function Facturacion({ onToast }: FacturacionProps) {
   const [metodosPago, setMetodosPago] = useState<MetodoPago[]>([]);
 
   const [idEmpresa, setIdEmpresa] = useState("");
+  const [numeroFacturaExterna, setNumeroFacturaExterna] = useState("");
   const [fecha, setFecha] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [valor, setValor] = useState("");
@@ -35,7 +48,7 @@ function Facturacion({ onToast }: FacturacionProps) {
   useEffect(() => {
     cargarFacturas();
     apiFetch<ApiResponse<UsuarioAdmin[]>>(`${API_USUARIOS}/?tipo_registro=empresa`).then((res) => setEmpresas(res.data)).catch(() => {});
-    apiFetch<MetodoPago[]>(`${API_METODOS_PAGO}/`).then(setMetodosPago).catch(() => setMetodosPago([]));
+    apiFetch<ApiResponse<MetodoPago[]>>(`${API_METODOS_PAGO}/`).then((res) => setMetodosPago(res.data)).catch(() => setMetodosPago([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -48,11 +61,13 @@ function Facturacion({ onToast }: FacturacionProps) {
         body: JSON.stringify({
           id_empresa: parseInt(idEmpresa),
           fecha,
+          numero_factura_externa: numeroFacturaExterna || null,
           detalles: descripcion ? [{ descripcion, valor: parseFloat(valor) }] : [],
         }),
       });
-      onToast("Factura creada correctamente.", "success");
+      onToast("Factura registrada correctamente.", "success");
       setIdEmpresa("");
+      setNumeroFacturaExterna("");
       setFecha("");
       setDescripcion("");
       setValor("");
@@ -92,12 +107,15 @@ function Facturacion({ onToast }: FacturacionProps) {
 
   return (
     <div>
-      <PageHeader title="Facturación" subtitle="Genera facturas para empresas y registra sus pagos." />
+      <PageHeader
+        title="Facturación"
+        subtitle="Seguimiento del balance de las facturas ya emitidas en Facturatech, por empresa. Este apartado no genera ni reemplaza la facturación real — es un registro interno de montos y pagos."
+      />
 
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 20, flex: "1 1 360px", maxWidth: 440 }}>
           <form onSubmit={crearFactura} style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Nueva factura</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Registrar factura de Facturatech</p>
             <Field label="Empresa" required>
               <select value={idEmpresa} onChange={(e) => setIdEmpresa(e.target.value)} style={{ ...inputStyle, appearance: "none" }} required>
                 <option value="">Seleccionar...</option>
@@ -106,10 +124,13 @@ function Facturacion({ onToast }: FacturacionProps) {
                 ))}
               </select>
             </Field>
+            <Field label="N° de factura en Facturatech">
+              <input value={numeroFacturaExterna} onChange={(e) => setNumeroFacturaExterna(e.target.value)} placeholder="Ej: FT-2026-0143" style={inputStyle} />
+            </Field>
             <Field label="Fecha" required>
               <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} required />
             </Field>
-            <Field label="Descripción del concepto">
+            <Field label="Concepto">
               <input value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Ej: Curso Trabajador Autorizado x 5" style={inputStyle} />
             </Field>
             <Field label="Valor">
@@ -120,17 +141,19 @@ function Facturacion({ onToast }: FacturacionProps) {
               borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600,
               cursor: guardandoFactura ? "not-allowed" : "pointer",
             }}>
-              {guardandoFactura ? "Creando..." : "Crear factura"}
+              {guardandoFactura ? "Guardando..." : "Registrar factura"}
             </button>
           </form>
 
           <form onSubmit={registrarPago} style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Registrar pago</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Registrar pago recibido</p>
             <Field label="Factura" required>
               <select value={idFacturaPago} onChange={(e) => setIdFacturaPago(e.target.value)} style={{ ...inputStyle, appearance: "none" }} required>
                 <option value="">Seleccionar...</option>
                 {facturas.map((f) => (
-                  <option key={f.id_factura} value={f.id_factura}>#{f.id_factura} · {f.empresa} · ${f.total}</option>
+                  <option key={f.id_factura} value={f.id_factura}>
+                    {f.numero_factura_externa || `#${f.id_factura}`} · {f.empresa} · saldo ${f.saldo_pendiente}
+                  </option>
                 ))}
               </select>
             </Field>
@@ -160,28 +183,48 @@ function Facturacion({ onToast }: FacturacionProps) {
           </form>
         </div>
 
-        <div style={{ flex: "1 1 340px" }}>
+        <div style={{ flex: "1 1 380px" }}>
           <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-              <thead>
-                <tr style={{ background: COLORS.lightGray, textAlign: "left" }}>
-                  <th style={{ padding: "10px 14px" }}>#</th>
-                  <th style={{ padding: "10px 14px" }}>Empresa</th>
-                  <th style={{ padding: "10px 14px" }}>Fecha</th>
-                  <th style={{ padding: "10px 14px" }}>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {facturas.map((f) => (
-                  <tr key={f.id_factura} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
-                    <td style={{ padding: "10px 14px" }}>{f.id_factura}</td>
-                    <td style={{ padding: "10px 14px" }}>{f.empresa}</td>
-                    <td style={{ padding: "10px 14px" }}>{f.fecha}</td>
-                    <td style={{ padding: "10px 14px", fontWeight: 700, color: COLORS.blue }}>${f.total}</td>
+            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: 0, padding: "16px 20px", borderBottom: `1px solid ${COLORS.borderGray}` }}>
+              Balance por factura ({facturas.length})
+            </p>
+            {facturas.length === 0 ? (
+              <p style={{ color: COLORS.textSecondary, fontSize: 14, padding: 24, margin: 0 }}>
+                Aún no hay facturas registradas. Regístralas aquí a medida que se emitan en Facturatech para llevar el balance.
+              </p>
+            ) : (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: COLORS.lightGray, textAlign: "left" }}>
+                    <th style={{ padding: "10px 14px" }}>N° Facturatech</th>
+                    <th style={{ padding: "10px 14px" }}>Empresa</th>
+                    <th style={{ padding: "10px 14px" }}>Fecha</th>
+                    <th style={{ padding: "10px 14px" }}>Total</th>
+                    <th style={{ padding: "10px 14px" }}>Saldo</th>
+                    <th style={{ padding: "10px 14px" }}>Estado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {facturas.map((f) => (
+                    <tr key={f.id_factura} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
+                      <td style={{ padding: "10px 14px" }}>{f.numero_factura_externa || `#${f.id_factura}`}</td>
+                      <td style={{ padding: "10px 14px" }}>{f.empresa}</td>
+                      <td style={{ padding: "10px 14px" }}>{f.fecha}</td>
+                      <td style={{ padding: "10px 14px", fontWeight: 700, color: COLORS.blue }}>${f.total}</td>
+                      <td style={{ padding: "10px 14px" }}>${f.saldo_pendiente}</td>
+                      <td style={{ padding: "10px 14px" }}>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 999,
+                          background: ESTADO_COLOR[f.estado].bg, color: ESTADO_COLOR[f.estado].text,
+                        }}>
+                          {ESTADO_LABEL[f.estado]}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
