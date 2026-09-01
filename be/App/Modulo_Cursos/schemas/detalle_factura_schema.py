@@ -1,11 +1,11 @@
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class DetalleFacturaBase(BaseModel):
-    descripcion: str
-    valor: Decimal
+    descripcion: str = Field(min_length=1)
+    valor: Decimal = Field(gt=0)
 
 
 class DetalleFacturaCreate(DetalleFacturaBase):
@@ -13,8 +13,8 @@ class DetalleFacturaCreate(DetalleFacturaBase):
 
 
 class DetalleFacturaUpdate(BaseModel):
-    descripcion: Optional[str] = None
-    valor: Optional[Decimal] = None
+    descripcion: Optional[str] = Field(default=None, min_length=1)
+    valor: Optional[Decimal] = Field(default=None, gt=0)
 
 
 class DetalleFacturaResponse(DetalleFacturaBase):

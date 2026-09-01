@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from App.Modulo_Cursos.controllers.curso_controller import inscribir_participante
 from App.Modulo_Cursos.models.certificado_model import Certificado
+from App.Modulo_Cursos.models.usuario_model import Usuario
 from tests.helpers import crear_programacion, crear_trabajador_apto
 
 
@@ -130,29 +131,31 @@ def test_concurrencia_ultimo_cupo_no_permite_sobreventa(
     # lo que esta prueba quiere validar: que with_for_update() + una sola
     # transacción (el fix de D1) evita la sobreventa bajo contención real.
     #
-    # SQLite no tiene locking a nivel de fila: with_for_update() es un no-op
-    # ahí (SQLAlchemy lo documenta así para este dialecto), así que bajo
-    # contención real con varios hilos genuinos el driver sqlite3/SQLAlchemy
-    # puede rechazar un escritor con distintos errores propios de la
-    # infraestructura de pruebas (database is locked, bad parameter or other
-    # API misuse, ObjectDeletedError por una fila tocada desde otra Session)
-    # en vez del 400 limpio que produce el mismo código contra MySQL (que sí
-    # soporta SELECT ... FOR UPDATE). Se aceptan esos errores como rechazo
-    # válido aquí: lo que esta prueba certifica —y lo único que puede
-    # certificar sobre SQLite— es que nunca hay más de un éxito. La ausencia
-    # de sobreventa contra MySQL real ya se verificó aparte con Docker: 5
-    # inscripciones concurrentes por curl, 1 sola exitosa, sin ningún error
-    # de base de datos.
+    # Importante: ningún objeto ORM atado a db_session puede tocarse desde un
+    # hilo trabajador — SQLAlchemy no soporta usar una misma Session desde
+    # varios hilos de SO a la vez, y cada db_session.commit() de las fixtures
+    # de arriba expira TODOS los objetos ya cargados en esa Session (no solo
+    # el que se acaba de guardar). Si un hilo leyera después, por ejemplo,
+    # trabajador.id_usuario sobre un objeto expirado, dispararía una carga
+    # diferida contra db_session al mismo tiempo que otro hilo hace lo mismo
+    # — eso sí producía errores intermitentes (IndexError dentro de la
+    # extensión C de SQLAlchemy) sin relación con sobreventa. Por eso aquí se
+    # extraen los ids como enteros planos ANTES de lanzar los hilos, y cada
+    # hilo solo trabaja con su propia Session (hilo_db) de ahí en adelante.
     prog = crear_programacion(db_session, curso, instructor, cupos=1)
     trabajadores = [
         crear_trabajador_apto(db_session, roles, empresa_a, tipo_cc, numero=2000 + i)
         for i in range(3)
     ]
+    id_programacion = prog.id_programacion
+    id_instructor = instructor.id_usuario
+    ids_trabajadores = [t.id_usuario for t in trabajadores]
 
-    def inscribir(trabajador, intentos_restantes=3):
+    def inscribir(id_trabajador, intentos_restantes=3):
         hilo_db = session_factory()
         try:
-            inscribir_participante(hilo_db, prog.id_programacion, trabajador.id_usuario, instructor)
+            instructor_local = hilo_db.get(Usuario, id_instructor)
+            inscribir_participante(hilo_db, id_programacion, id_trabajador, instructor_local)
             return 200
         except HTTPException as exc:
             return exc.status_code
@@ -163,13 +166,13 @@ def test_concurrencia_ultimo_cupo_no_permite_sobreventa(
                 # Reintento simple con backoff aleatorio, como haría un
                 # cliente real ante un error transitorio de base de datos.
                 time.sleep(random.uniform(0.01, 0.05))
-                return inscribir(trabajador, intentos_restantes - 1)
+                return inscribir(id_trabajador, intentos_restantes - 1)
             return "error de infraestructura sqlite bajo contención"
         finally:
             hilo_db.close()
 
     with ThreadPoolExecutor(max_workers=3) as executor:
-        resultados = list(executor.map(inscribir, trabajadores))
+        resultados = list(executor.map(inscribir, ids_trabajadores))
 
     exitosos = [r for r in resultados if r == 200]
     rechazados = [r for r in resultados if r != 200]
