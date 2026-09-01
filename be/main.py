@@ -6,6 +6,7 @@ from App.Modulo_Cursos.routes import (
     certificado_indumentaria_routes,
     certificado_routes,
     curso_routes,
+    dashboard_routes,
     detalle_factura_routes,
     documento_routes,
     evaluacion_presentada_routes,
@@ -96,6 +97,7 @@ app.include_router(asistencia_routes.router)
 app.include_router(accidente_routes.router)
 app.include_router(tipo_accidente_routes.router)
 app.include_router(reporte_routes.router)
+app.include_router(dashboard_routes.router)
 
 # 5. Ruta de bienvenida (opcional)
 @app.get("/")
