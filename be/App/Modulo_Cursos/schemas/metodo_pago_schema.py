@@ -1,9 +1,9 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class MetodoPagoBase(BaseModel):
-    nombre: str
+    nombre: str = Field(min_length=1)
 
 
 class MetodoPagoCreate(MetodoPagoBase):
@@ -11,7 +11,7 @@ class MetodoPagoCreate(MetodoPagoBase):
 
 
 class MetodoPagoUpdate(BaseModel):
-    nombre: Optional[str] = None
+    nombre: Optional[str] = Field(default=None, min_length=1)
 
 
 class MetodoPagoResponse(MetodoPagoBase):
