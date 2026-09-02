@@ -1,7 +1,7 @@
 import json
 from datetime import date
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Response, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
@@ -11,6 +11,7 @@ from App.Modulo_Cursos.models.certificado_model import Certificado
 from App.Modulo_Cursos.models.programacion_model import ProgramacionCurso
 from App.Modulo_Cursos.models.reporte_model import Reporte
 from App.Modulo_Cursos.models.usuario_model import Usuario
+from App.Modulo_Cursos.utils.pdf_reporte import generar_pdf_reporte_diario
 from App.Modulo_Cursos.utils.response import api_response
 
 
@@ -102,4 +103,28 @@ def obtener_reporte(db: Session, id_reporte: int) -> dict:
         success=True,
         message="Reporte obtenido correctamente",
         data=_serializar(item)
+    )
+
+
+def descargar_pdf_reporte(db: Session, id_reporte: int) -> Response:
+    item = db.query(Reporte).options(joinedload(Reporte.usuario)).filter(
+        Reporte.id_reporte == id_reporte
+    ).first()
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_response(
+                success=False,
+                message="Reporte no encontrado",
+                error="No existe un reporte con ese ID"
+            )
+        )
+
+    pdf_bytes = generar_pdf_reporte_diario(item)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="reporte-diario-{item.fecha}.pdf"'
+        }
     )

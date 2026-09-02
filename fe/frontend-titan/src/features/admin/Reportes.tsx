@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiFetch } from "../../api/client";
+import { apiFetch, apiFetchBlob, descargarBlob } from "../../api/client";
 import ConfirmModal from "../../components/UI/ConfirmModal";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
@@ -19,6 +19,7 @@ function Reportes({ onToast }: ReportesProps) {
   const [reportes, setReportes] = useState<Reporte[]>([]);
   const [reporteAbierto, setReporteAbierto] = useState<Reporte | null>(null);
   const [generandoDiario, setGenerandoDiario] = useState(false);
+  const [descargandoId, setDescargandoId] = useState<number | null>(null);
 
   const hoy = new Date();
   const [mes, setMes] = useState(hoy.getMonth() + 1);
@@ -48,6 +49,18 @@ function Reportes({ onToast }: ReportesProps) {
       onToast(err instanceof Error ? err.message : "Error inesperado", "error");
     } finally {
       setGenerandoDiario(false);
+    }
+  };
+
+  const descargarPdf = async (reporte: Reporte) => {
+    setDescargandoId(reporte.id_reporte);
+    try {
+      const blob = await apiFetchBlob(`${API_REPORTES}/${reporte.id_reporte}/pdf`);
+      descargarBlob(blob, `reporte-diario-${reporte.fecha}.pdf`);
+    } catch {
+      onToast("No se pudo descargar el PDF del reporte.", "error");
+    } finally {
+      setDescargandoId(null);
     }
   };
 
@@ -145,10 +158,26 @@ function Reportes({ onToast }: ReportesProps) {
               <div
                 key={r.id_reporte}
                 onClick={() => setReporteAbierto(r)}
-                style={{ padding: "12px 20px", borderTop: `1px solid ${COLORS.borderGray}`, fontSize: 13, cursor: "pointer" }}
+                style={{
+                  padding: "12px 20px", borderTop: `1px solid ${COLORS.borderGray}`, fontSize: 13, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                }}
               >
-                <span style={{ fontWeight: 600 }}>{r.fecha}</span>
-                <span style={{ color: COLORS.textSecondary }}> — generado {r.fecha_creacion}</span>
+                <span>
+                  <span style={{ fontWeight: 600 }}>{r.fecha}</span>
+                  <span style={{ color: COLORS.textSecondary }}> — generado {r.fecha_creacion}</span>
+                </span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); descargarPdf(r); }}
+                  disabled={descargandoId === r.id_reporte}
+                  style={{
+                    background: "none", color: COLORS.blue, border: `1px solid ${COLORS.blue}`,
+                    borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 600,
+                    cursor: descargandoId === r.id_reporte ? "not-allowed" : "pointer", flexShrink: 0,
+                  }}
+                >
+                  {descargandoId === r.id_reporte ? "Descargando..." : "Descargar PDF"}
+                </button>
               </div>
             ))
           )}
@@ -165,12 +194,25 @@ function Reportes({ onToast }: ReportesProps) {
             <pre style={{ fontSize: 12, background: COLORS.lightGray, padding: 16, borderRadius: 8, whiteSpace: "pre-wrap" }}>
               {JSON.stringify(JSON.parse(reporteAbierto.contenido_json), null, 2)}
             </pre>
-            <button onClick={() => setReporteAbierto(null)} style={{
-              background: COLORS.blue, color: COLORS.white, border: "none", borderRadius: 8,
-              padding: "8px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", marginTop: 8,
-            }}>
-              Cerrar
-            </button>
+            <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+              <button
+                onClick={() => descargarPdf(reporteAbierto)}
+                disabled={descargandoId === reporteAbierto.id_reporte}
+                style={{
+                  background: descargandoId === reporteAbierto.id_reporte ? "#ccc" : COLORS.red, color: COLORS.white, border: "none", borderRadius: 8,
+                  padding: "8px 18px", fontSize: 13, fontWeight: 600,
+                  cursor: descargandoId === reporteAbierto.id_reporte ? "not-allowed" : "pointer",
+                }}
+              >
+                {descargandoId === reporteAbierto.id_reporte ? "Descargando..." : "Descargar PDF"}
+              </button>
+              <button onClick={() => setReporteAbierto(null)} style={{
+                background: COLORS.blue, color: COLORS.white, border: "none", borderRadius: 8,
+                padding: "8px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer",
+              }}>
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
