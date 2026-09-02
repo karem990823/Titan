@@ -1,3 +1,10 @@
+-- El cliente mysql que usa docker-entrypoint-initdb.d para importar este
+-- archivo se conecta con character_set_client=latin1 por defecto, aunque la
+-- base de datos es utf8mb4 — sin este SET NAMES, cada tilde/ñ del archivo
+-- (ya en UTF-8 correcto) se reinterpreta como Latin-1 y se re-codifica mal
+-- al guardarse (ej. "Bogotá" queda como "BogotÃ¡" en la base de datos).
+SET NAMES utf8mb4;
+
 INSERT INTO roles(nombre_rol)
 VALUES
 ('Administrador'),
@@ -132,3 +139,9 @@ VALUES
 (3,9,'inscrito',NULL,NULL),
 (3,10,'inscrito',NULL,NULL),
 (3,11,'inscrito',NULL,NULL);
+
+INSERT INTO metodo_pago(nombre)
+VALUES
+('Efectivo'),
+('Transferencia bancaria'),
+('Tarjeta de crédito/débito');

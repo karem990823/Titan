@@ -204,6 +204,7 @@ export interface Pago {
   monto: number;
   id_factura: number;
   id_metodo: number;
+  metodo_pago: string | null;
 }
 
 // --- Inventario de indumentaria (admin) ---
