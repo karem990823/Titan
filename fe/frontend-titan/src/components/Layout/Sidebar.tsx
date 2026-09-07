@@ -25,6 +25,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/empresa/inscribir", label: "Inscribir trabajador", icon: "assignment_ind", roles: ["Empresa"] },
   { to: "/empresa/certificados", label: "Mis certificados", icon: "workspace_premium", roles: ["Empresa"] },
   { to: "/admin/usuarios", label: "Usuarios", icon: "manage_accounts", roles: ["Administrador"] },
+  { to: "/admin/trabajadores", label: "Trabajadores", icon: "engineering", roles: ["Administrador"] },
+  { to: "/admin/alertas", label: "Alertas", icon: "notifications", roles: ["Administrador"] },
   { to: "/admin/facturacion", label: "Facturación", icon: "payments", roles: ["Administrador"] },
   { to: "/admin/inventario", label: "Inventario", icon: "inventory_2", roles: ["Administrador"] },
   { to: "/admin/reportes", label: "Reportes", icon: "monitoring", roles: ["Administrador", "Instructor"] },

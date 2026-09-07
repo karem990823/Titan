@@ -164,15 +164,32 @@ def desactivar_usuario(db: Session, id_usuario: int) -> dict:
     )
 
 
-# --- Auto-registro de trabajadores (Empresa) ---
+# --- Registro de trabajadores (Empresa sobre sí misma, o Administrador sobre cualquier empresa) ---
 
-def crear_trabajador_propio(db: Session, data, empresa_actual: Usuario) -> dict:
+def _validar_empresa_existe(db: Session, id_empresa: int) -> Usuario:
+    empresa = db.query(Usuario).filter(
+        Usuario.id_usuario == id_empresa,
+        Usuario.tipo_registro == "empresa",
+    ).first()
+    if not empresa:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_response(
+                success=False,
+                message="No se pudo registrar el trabajador",
+                error="La empresa indicada no existe"
+            )
+        )
+    return empresa
+
+
+def _crear_trabajador(db: Session, data, id_empresa: int) -> dict:
     rol_participante = db.query(Rol).filter(Rol.nombre_rol == "Participante").first()
 
     nuevo = Usuario(
         tipo_registro="trabajador",
         id_rol=rol_participante.id_rol if rol_participante else None,
-        id_empresa=empresa_actual.id_usuario,
+        id_empresa=id_empresa,
         password_hash=None,
         **data.model_dump(),
     )
@@ -188,11 +205,11 @@ def crear_trabajador_propio(db: Session, data, empresa_actual: Usuario) -> dict:
     )
 
 
-def listar_trabajadores_propios(db: Session, empresa_actual: Usuario) -> dict:
+def _listar_trabajadores(db: Session, id_empresa: int) -> dict:
     trabajadores = db.query(Usuario).options(
         joinedload(Usuario.tipo_documento)
     ).filter(
-        Usuario.id_empresa == empresa_actual.id_usuario,
+        Usuario.id_empresa == id_empresa,
         Usuario.tipo_registro == "trabajador",
     ).order_by(Usuario.nombre).all()
 
@@ -201,6 +218,24 @@ def listar_trabajadores_propios(db: Session, empresa_actual: Usuario) -> dict:
         message="Trabajadores obtenidos correctamente",
         data=[_serializar_trabajador(t) for t in trabajadores]
     )
+
+
+def crear_trabajador_propio(db: Session, data, empresa_actual: Usuario) -> dict:
+    return _crear_trabajador(db, data, empresa_actual.id_usuario)
+
+
+def listar_trabajadores_propios(db: Session, empresa_actual: Usuario) -> dict:
+    return _listar_trabajadores(db, empresa_actual.id_usuario)
+
+
+def crear_trabajador_admin(db: Session, data, id_empresa: int) -> dict:
+    _validar_empresa_existe(db, id_empresa)
+    return _crear_trabajador(db, data, id_empresa)
+
+
+def listar_trabajadores_admin(db: Session, id_empresa: int) -> dict:
+    _validar_empresa_existe(db, id_empresa)
+    return _listar_trabajadores(db, id_empresa)
 
 
 # --- Consulta usada por el módulo académico ---

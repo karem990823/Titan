@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { apiFetch, apiFetchBlob, descargarBlob } from "../../api/client";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
+import DocumentoViewerModal from "../../components/UI/DocumentoViewerModal";
 import { API_DOCUMENTOS, API_USUARIOS, inputStyle } from "../../constants/color";
 import type { ApiResponse, Documento, ToastType, Trabajador } from "../../types";
 
@@ -18,6 +19,7 @@ function DocumentosTrabajador({ onToast }: DocumentosTrabajadorProps) {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [descargandoId, setDescargandoId] = useState<number | null>(null);
+  const [documentoAVer, setDocumentoAVer] = useState<Documento | null>(null);
 
   useEffect(() => {
     apiFetch<ApiResponse<Trabajador[]>>(`${API_USUARIOS}/trabajadores`)
@@ -147,7 +149,12 @@ function DocumentosTrabajador({ onToast }: DocumentosTrabajadorProps) {
                 <div className="flex flex-col gap-gap-2xs">
                   {documentos.map((doc) => (
                     <div key={doc.id_documento} className="flex items-center gap-gap-sm px-gap-sm py-2.5 bg-surface-container-low rounded-lg">
-                      <span className="flex-1 font-label-lg text-label-lg text-on-surface normal-case">{doc.nombre}</span>
+                      <span
+                        className="flex-1 font-label-lg text-label-lg text-secondary normal-case cursor-pointer hover:underline"
+                        onClick={() => setDocumentoAVer(doc)}
+                      >
+                        {doc.nombre}
+                      </span>
                       <span className="font-body-sm text-body-sm text-on-surface-variant">{doc.fecha_subida?.slice(0, 10)}</span>
                       <button
                         onClick={() => descargar(doc)}
@@ -168,6 +175,14 @@ function DocumentosTrabajador({ onToast }: DocumentosTrabajadorProps) {
           </>
         )}
       </div>
+
+      {documentoAVer && (
+        <DocumentoViewerModal
+          nombre={documentoAVer.nombre}
+          urlDescarga={`${API_DOCUMENTOS}/${documentoAVer.id_documento}/descargar`}
+          onClose={() => setDocumentoAVer(null)}
+        />
+      )}
     </div>
   );
 }

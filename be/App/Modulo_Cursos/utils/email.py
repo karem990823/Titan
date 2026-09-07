@@ -69,3 +69,39 @@ def enviar_correo_restablecer_password(destinatario: str, nombre: str, enlace: s
         texto_boton="Restablecer contraseña",
     )
     return enviar_correo(destinatario, "Restablece tu contraseña en TITAN-ES", cuerpo)
+
+
+def enviar_correo_alertas(destinatario: str, vencimientos: list[dict], facturas: list[dict]) -> bool:
+    def _fila(mensaje: str) -> str:
+        return f'<li style="margin-bottom: 8px; color: #444;">{mensaje}</li>'
+
+    seccion_vencimientos = (
+        "".join(_fila(v["mensaje"]) for v in vencimientos)
+        if vencimientos else
+        '<li style="color: #888;">Ninguno.</li>'
+    )
+    seccion_facturas = (
+        "".join(_fila(f["mensaje"]) for f in facturas)
+        if facturas else
+        '<li style="color: #888;">Ninguna.</li>'
+    )
+
+    cuerpo = f"""
+    <div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; background: #f8f9ff;">
+      <p style="font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #93000b; font-weight: bold; margin: 0 0 8px;">
+        TITAN-ES Seguridad en Alturas
+      </p>
+      <h1 style="font-size: 20px; color: #0d1c2f; margin: 0 0 20px;">Alertas del sistema</h1>
+
+      <h2 style="font-size: 15px; color: #476080; margin: 0 0 8px;">
+        Certificados próximos a vencer ({len(vencimientos)})
+      </h2>
+      <ul style="font-size: 13px; padding-left: 20px; margin: 0 0 24px;">{seccion_vencimientos}</ul>
+
+      <h2 style="font-size: 15px; color: #476080; margin: 0 0 8px;">
+        Facturas pendientes de pago ({len(facturas)})
+      </h2>
+      <ul style="font-size: 13px; padding-left: 20px; margin: 0;">{seccion_facturas}</ul>
+    </div>
+    """
+    return enviar_correo(destinatario, "Alertas de TITAN-ES", cuerpo)

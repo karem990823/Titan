@@ -4,10 +4,12 @@ from sqlalchemy.orm import Session
 from App.Modulo_Cursos.config.database import get_db
 from App.Modulo_Cursos.controllers.usuario_controller import (
     actualizar_usuario,
+    crear_trabajador_admin,
     crear_trabajador_propio,
     crear_usuario,
     desactivar_usuario,
     listar_instructores,
+    listar_trabajadores_admin,
     listar_trabajadores_propios,
     listar_usuarios,
 )
@@ -90,3 +92,24 @@ def listar_trabajadores(
     current_user: Usuario = Depends(require_empresa),
 ):
     return listar_trabajadores_propios(db, current_user)
+
+
+# --- Registro de trabajadores por parte del Administrador (a nombre de cualquier empresa) ---
+
+@router.post("/empresas/{id_empresa}/trabajadores")
+def crear_trabajador_para_empresa(
+    id_empresa: int,
+    data: TrabajadorSelfCreate,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin),
+):
+    return crear_trabajador_admin(db, data, id_empresa)
+
+
+@router.get("/empresas/{id_empresa}/trabajadores")
+def listar_trabajadores_de_empresa(
+    id_empresa: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin),
+):
+    return listar_trabajadores_admin(db, id_empresa)

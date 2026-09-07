@@ -198,9 +198,12 @@ CREATE TABLE tipos_alerta(
 CREATE TABLE alertas(
     id_alerta INT PRIMARY KEY AUTO_INCREMENT,
     id_tipo_alerta INT,
+    id_referencia INT,
+    mensaje VARCHAR(255),
     fecha_vencimiento DATE,
     estado ENUM('pendiente','enviada','vencida'),
     id_usuario INT,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
     FOREIGN KEY (id_tipo_alerta) REFERENCES tipos_alerta(id_tipo_alerta)
 );

@@ -320,3 +320,22 @@ export interface InscritoPrograma {
   tipo_documento: string | null;
   numero_identificacion: number | null;
 }
+
+// --- Alertas ---
+
+export type EstadoAlerta = "pendiente" | "enviada" | "vencida";
+
+export interface Alerta {
+  id_alerta: number;
+  tipo: string | null;
+  mensaje: string;
+  fecha_vencimiento: string | null;
+  estado: EstadoAlerta;
+  fecha_creacion: string | null;
+}
+
+export interface ResultadoGenerarAlertas {
+  nuevas_vencimiento: number;
+  nuevas_factura: number;
+  correo_enviado: boolean;
+}

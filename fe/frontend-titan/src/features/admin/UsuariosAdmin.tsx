@@ -10,8 +10,10 @@ interface UsuariosAdminProps {
   onToast: (message: string, type: ToastType) => void;
 }
 
+type TipoCuenta = "usuario" | "empresa" | "independiente";
+
 interface FormState {
-  tipo_registro: "empresa" | "trabajador" | "usuario";
+  tipoCuenta: TipoCuenta;
   nombre: string;
   apellido: string;
   id_tipo: string;
@@ -25,7 +27,7 @@ interface FormState {
 }
 
 const FORM_VACIO: FormState = {
-  tipo_registro: "usuario",
+  tipoCuenta: "usuario",
   nombre: "",
   apellido: "",
   id_tipo: "",
@@ -68,17 +70,17 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
       const res = await apiFetch<ApiResponse<UsuarioAdminType>>(`${API_USUARIOS}/`, {
         method: "POST",
         body: JSON.stringify({
-          tipo_registro: form.tipo_registro,
+          tipo_registro: form.tipoCuenta === "usuario" ? "usuario" : "empresa",
           nombre: form.nombre,
-          apellido: form.apellido || null,
-          id_tipo: form.id_tipo ? parseInt(form.id_tipo) : null,
-          numero_identificacion: form.numero_identificacion ? parseInt(form.numero_identificacion) : null,
-          nit: form.nit ? parseInt(form.nit) : null,
+          apellido: form.tipoCuenta === "independiente" ? form.apellido || null : null,
+          id_tipo: form.tipoCuenta !== "empresa" && form.id_tipo ? parseInt(form.id_tipo) : null,
+          numero_identificacion: form.tipoCuenta !== "empresa" && form.numero_identificacion ? parseInt(form.numero_identificacion) : null,
+          nit: form.tipoCuenta === "empresa" && form.nit ? parseInt(form.nit) : null,
           direccion: form.direccion || null,
           telefono: form.telefono ? parseInt(form.telefono) : null,
           correo: form.correo,
           id_rol: parseInt(form.id_rol),
-          id_empresa: form.id_empresa ? parseInt(form.id_empresa) : null,
+          id_empresa: form.tipoCuenta === "usuario" && form.id_empresa ? parseInt(form.id_empresa) : null,
         }),
       });
       onToast(res.message || "Cuenta creada correctamente.", "success");
@@ -103,11 +105,19 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
     }
   };
 
-  const botonDeshabilitado = loading || !form.nombre.trim() || !form.correo.trim() || !form.id_rol;
+  const camposIdentificacionValidos =
+    form.tipoCuenta === "empresa"
+      ? form.nit.trim() !== ""
+      : form.tipoCuenta === "independiente"
+      ? form.apellido.trim() !== "" && form.id_tipo !== "" && form.numero_identificacion.trim() !== ""
+      : true;
+
+  const botonDeshabilitado =
+    loading || !form.nombre.trim() || !form.correo.trim() || !form.id_rol || !camposIdentificacionValidos;
 
   return (
     <div>
-      <PageHeader title="Usuarios" subtitle="Crea y administra las cuentas de administradores, instructores y empresas." />
+      <PageHeader title="Usuarios" subtitle="Crea y administra las cuentas de administradores, instructores, empresas e independientes." />
 
       <div className="flex gap-gap-lg flex-wrap items-start">
         <form onSubmit={handleSubmit} className="bg-surface-container-lowest rounded-xl p-gap-lg flex-1 min-w-[380px] max-w-lg">
@@ -115,9 +125,16 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
 
           <div className="grid grid-cols-2 gap-x-gap-md">
             <Field label="Tipo de cuenta" required>
-              <select value={form.tipo_registro} onChange={(e) => setForm({ ...form, tipo_registro: e.target.value as FormState["tipo_registro"] })} style={{ ...inputStyle, appearance: "none" }}>
+              <select
+                value={form.tipoCuenta}
+                onChange={(e) =>
+                  setForm({ ...FORM_VACIO, tipoCuenta: e.target.value as TipoCuenta, id_rol: form.id_rol })
+                }
+                style={{ ...inputStyle, appearance: "none" }}
+              >
                 <option value="usuario">Personal TITAN-ES (admin/instructor)</option>
-                <option value="empresa">Empresa / Independiente</option>
+                <option value="empresa">Empresa</option>
+                <option value="independiente">Independiente</option>
               </select>
             </Field>
             <Field label="Rol" required>
@@ -130,14 +147,20 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-gap-md">
-            <Field label="Nombre / Razón social" required>
+          {form.tipoCuenta === "independiente" ? (
+            <div className="grid grid-cols-2 gap-x-gap-md">
+              <Field label="Nombre" required>
+                <input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} style={inputStyle} required />
+              </Field>
+              <Field label="Apellido" required>
+                <input value={form.apellido} onChange={(e) => setForm({ ...form, apellido: e.target.value })} style={inputStyle} required />
+              </Field>
+            </div>
+          ) : (
+            <Field label={form.tipoCuenta === "empresa" ? "Razón social" : "Nombre"} required>
               <input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} style={inputStyle} required />
             </Field>
-            <Field label="Apellido">
-              <input value={form.apellido} onChange={(e) => setForm({ ...form, apellido: e.target.value })} style={inputStyle} />
-            </Field>
-          </div>
+          )}
 
           <Field label="Correo" required>
             <input type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} style={inputStyle} required />
@@ -146,7 +169,7 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
             Se le enviará un correo a esta dirección con un enlace para crear su propia contraseña.
           </p>
 
-          {form.tipo_registro === "usuario" && (
+          {form.tipoCuenta === "usuario" && (
             <Field label="Empresa a la que pertenece">
               <select value={form.id_empresa} onChange={(e) => setForm({ ...form, id_empresa: e.target.value })} style={{ ...inputStyle, appearance: "none" }}>
                 <option value="">Sin asignar</option>
@@ -157,29 +180,35 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
             </Field>
           )}
 
-          {form.tipo_registro === "empresa" && (
-            <div className="grid grid-cols-2 gap-x-gap-md">
-              <Field label="NIT">
-                <input type="number" value={form.nit} onChange={(e) => setForm({ ...form, nit: e.target.value })} style={inputStyle} />
-              </Field>
-              <Field label="Teléfono">
-                <input type="number" value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} style={inputStyle} />
-              </Field>
-            </div>
+          {form.tipoCuenta === "empresa" && (
+            <Field label="NIT" required>
+              <input type="number" value={form.nit} onChange={(e) => setForm({ ...form, nit: e.target.value })} style={inputStyle} required />
+            </Field>
           )}
 
-          {form.tipo_registro === "usuario" && (
+          {(form.tipoCuenta === "usuario" || form.tipoCuenta === "independiente") && (
             <div className="grid grid-cols-2 gap-x-gap-md">
-              <Field label="Tipo de documento">
-                <select value={form.id_tipo} onChange={(e) => setForm({ ...form, id_tipo: e.target.value })} style={{ ...inputStyle, appearance: "none" }}>
+              <Field label="Tipo de documento" required={form.tipoCuenta === "independiente"}>
+                <select value={form.id_tipo} onChange={(e) => setForm({ ...form, id_tipo: e.target.value })} style={{ ...inputStyle, appearance: "none" }} required={form.tipoCuenta === "independiente"}>
                   <option value="">Seleccionar...</option>
                   {tiposDoc.map((t) => (
                     <option key={t.id_tipo} value={t.id_tipo}>{t.nombre}</option>
                   ))}
                 </select>
               </Field>
-              <Field label="Número de documento">
-                <input type="number" value={form.numero_identificacion} onChange={(e) => setForm({ ...form, numero_identificacion: e.target.value })} style={inputStyle} />
+              <Field label="Número de documento" required={form.tipoCuenta === "independiente"}>
+                <input type="number" value={form.numero_identificacion} onChange={(e) => setForm({ ...form, numero_identificacion: e.target.value })} style={inputStyle} required={form.tipoCuenta === "independiente"} />
+              </Field>
+            </div>
+          )}
+
+          {(form.tipoCuenta === "empresa" || form.tipoCuenta === "independiente") && (
+            <div className="grid grid-cols-2 gap-x-gap-md">
+              <Field label="Dirección">
+                <input value={form.direccion} onChange={(e) => setForm({ ...form, direccion: e.target.value })} style={inputStyle} />
+              </Field>
+              <Field label="Teléfono">
+                <input type="number" value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} style={inputStyle} />
               </Field>
             </div>
           )}

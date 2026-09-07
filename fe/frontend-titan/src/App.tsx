@@ -37,6 +37,8 @@ import MisCertificados from "./features/empresa/MisCertificados";
 
 // Administrador
 import UsuariosAdmin from "./features/admin/UsuariosAdmin";
+import GestionTrabajadores from "./features/admin/GestionTrabajadores";
+import Alertas from "./features/admin/Alertas";
 import Facturacion from "./features/admin/Facturacion";
 import Inventario from "./features/admin/Inventario";
 import Reportes from "./features/admin/Reportes";
@@ -194,6 +196,22 @@ function App() {
             element={
               <RequireRole roles={["Administrador"]}>
                 <UsuariosAdmin onToast={showToast} />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/admin/trabajadores"
+            element={
+              <RequireRole roles={["Administrador"]}>
+                <GestionTrabajadores onToast={showToast} />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/admin/alertas"
+            element={
+              <RequireRole roles={["Administrador"]}>
+                <Alertas onToast={showToast} />
               </RequireRole>
             }
           />
