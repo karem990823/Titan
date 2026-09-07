@@ -20,7 +20,6 @@ interface FormState {
   direccion: string;
   telefono: string;
   correo: string;
-  password: string;
   id_rol: string;
   id_empresa: string;
 }
@@ -35,7 +34,6 @@ const FORM_VACIO: FormState = {
   direccion: "",
   telefono: "",
   correo: "",
-  password: "",
   id_rol: "",
   id_empresa: "",
 };
@@ -67,7 +65,7 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      await apiFetch<ApiResponse<UsuarioAdminType>>(`${API_USUARIOS}/`, {
+      const res = await apiFetch<ApiResponse<UsuarioAdminType>>(`${API_USUARIOS}/`, {
         method: "POST",
         body: JSON.stringify({
           tipo_registro: form.tipo_registro,
@@ -79,12 +77,11 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
           direccion: form.direccion || null,
           telefono: form.telefono ? parseInt(form.telefono) : null,
           correo: form.correo,
-          password: form.password,
           id_rol: parseInt(form.id_rol),
           id_empresa: form.id_empresa ? parseInt(form.id_empresa) : null,
         }),
       });
-      onToast("Cuenta creada correctamente.", "success");
+      onToast(res.message || "Cuenta creada correctamente.", "success");
       setForm(FORM_VACIO);
       cargarUsuarios();
     } catch (err) {
@@ -106,7 +103,7 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
     }
   };
 
-  const botonDeshabilitado = loading || !form.nombre.trim() || !form.correo.trim() || !form.password || !form.id_rol;
+  const botonDeshabilitado = loading || !form.nombre.trim() || !form.correo.trim() || !form.id_rol;
 
   return (
     <div>
@@ -142,14 +139,12 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-gap-md">
-            <Field label="Correo" required>
-              <input type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} style={inputStyle} required />
-            </Field>
-            <Field label="Contraseña" required>
-              <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} style={inputStyle} required />
-            </Field>
-          </div>
+          <Field label="Correo" required>
+            <input type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} style={inputStyle} required />
+          </Field>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mb-gap-sm">
+            Se le enviará un correo a esta dirección con un enlace para crear su propia contraseña.
+          </p>
 
           {form.tipo_registro === "usuario" && (
             <Field label="Empresa a la que pertenece">

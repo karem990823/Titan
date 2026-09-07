@@ -2,13 +2,15 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from App.Modulo_Cursos.models.usuario_model import Usuario
+from App.Modulo_Cursos.utils.email import enviar_correo_restablecer_password
+from App.Modulo_Cursos.utils.password_reset import consumir_token, generar_enlace_password
 from App.Modulo_Cursos.utils.rate_limit import (
     limite_excedido,
     limpiar_intentos,
     registrar_intento_fallido,
 )
 from App.Modulo_Cursos.utils.response import api_response
-from App.Modulo_Cursos.utils.security import create_access_token, verify_password
+from App.Modulo_Cursos.utils.security import create_access_token, hash_password, verify_password
 
 # Roles que pueden iniciar sesión en el sistema. "Participante" existe en la
 # tabla roles solo para categorizar trabajadores/estudiantes en reportes: nunca
@@ -106,6 +108,54 @@ def login(db: Session, data, ip: str = "desconocida") -> dict:
             "token_type": "bearer",
             "usuario": _serializar_usuario(usuario),
         }
+    )
+
+
+_RESPUESTA_GENERICA_OLVIDE = api_response(
+    success=True,
+    message="Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña.",
+    data=None
+)
+
+
+def olvide_password(db: Session, data, ip: str = "desconocida") -> dict:
+    # Misma respuesta exista o no la cuenta, y con límite de intentos por
+    # IP+correo: así nadie puede usar este endpoint para averiguar qué
+    # correos están registrados en el sistema, ni para saturarlo de correos.
+    clave_intentos = f"{ip}:{data.correo.lower()}"
+    if limite_excedido(clave_intentos):
+        return _RESPUESTA_GENERICA_OLVIDE
+    registrar_intento_fallido(clave_intentos)
+
+    usuario = db.query(Usuario).filter(Usuario.correo == data.correo).first()
+    if usuario and usuario.estado_activo:
+        enlace = generar_enlace_password(db, usuario.id_usuario)
+        enviar_correo_restablecer_password(usuario.correo, usuario.nombre, enlace)
+
+    return _RESPUESTA_GENERICA_OLVIDE
+
+
+def restablecer_password(db: Session, data) -> dict:
+    registro = consumir_token(db, data.token)
+    if not registro:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=api_response(
+                success=False,
+                message="No se pudo restablecer la contraseña",
+                error="El enlace no es válido o ya expiró. Solicita uno nuevo."
+            )
+        )
+
+    usuario = db.query(Usuario).filter(Usuario.id_usuario == registro.id_usuario).first()
+    usuario.password_hash = hash_password(data.password)
+    registro.usado = True
+    db.commit()
+
+    return api_response(
+        success=True,
+        message="Contraseña actualizada correctamente. Ya puedes iniciar sesión.",
+        data=None
     )
 
 

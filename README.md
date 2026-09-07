@@ -101,6 +101,9 @@ Cada `.env.example` del repo tiene su propio propósito — no son intercambiabl
 | `JWT_ALGORITHM` | Algoritmo de firma del JWT (`HS256`) |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Minutos de vigencia de la sesión (60 por defecto) |
 | `UPLOADS_DIR` | Carpeta donde se guardan los documentos y evidencias subidos |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | Cuenta usada para enviar los correos de activación de cuenta y recuperación de contraseña. Con Gmail, `SMTP_PASSWORD` debe ser una contraseña de aplicación (myaccount.google.com/apppasswords), no la contraseña normal de la cuenta |
+| `SMTP_FROM_NAME` | Nombre que aparece como remitente en esos correos |
+| `FRONTEND_URL` | Base usada para armar los enlaces de esos correos (ej. `http://localhost:5173`) |
 
 **`fe/frontend.env.example`** (copiar como `fe/frontend-titan/.env`):
 

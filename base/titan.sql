@@ -281,3 +281,12 @@ CREATE TABLE solicitudes_contacto(
     atendida BOOLEAN DEFAULT FALSE,
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE password_reset_tokens(
+    id_token INT PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT NOT NULL,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,
+    fecha_expiracion DATETIME NOT NULL,
+    usado BOOLEAN DEFAULT FALSE,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+);

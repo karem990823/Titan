@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from App.Modulo_Cursos.models.rol_model import Rol
 from App.Modulo_Cursos.models.usuario_model import Usuario
+from App.Modulo_Cursos.utils.email import enviar_correo_crear_password
+from App.Modulo_Cursos.utils.password_reset import generar_enlace_password
 from App.Modulo_Cursos.utils.response import api_response
 from App.Modulo_Cursos.utils.security import hash_password
 
@@ -82,16 +84,26 @@ def crear_usuario(db: Session, data) -> dict:
     _validar_correo_disponible(db, data.correo)
     _validar_rol_existe(db, data.id_rol)
 
-    payload = data.model_dump(exclude={"password"})
-    nuevo = Usuario(**payload, password_hash=hash_password(data.password))
+    # Sin password_hash todavía: el administrador nunca define la contraseña
+    # de otra persona. Se le envía un enlace de un solo uso para que la cree
+    # ella misma; hasta entonces la cuenta no puede iniciar sesión (login
+    # rechaza password_hash nulo).
+    nuevo = Usuario(**data.model_dump())
 
     db.add(nuevo)
     db.commit()
     db.refresh(nuevo)
 
+    enlace = generar_enlace_password(db, nuevo.id_usuario)
+    correo_enviado = enviar_correo_crear_password(nuevo.correo, nuevo.nombre, enlace)
+
     return api_response(
         success=True,
-        message="Usuario creado correctamente",
+        message=(
+            "Usuario creado correctamente. Se le envió un correo para crear su contraseña."
+            if correo_enviado else
+            "Usuario creado correctamente, pero no se pudo enviar el correo de activación. Usa 'olvidé mi contraseña' para reintentar."
+        ),
         data=_serializar(nuevo)
     )
 

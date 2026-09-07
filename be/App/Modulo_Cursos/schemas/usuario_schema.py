@@ -27,7 +27,6 @@ class UsuarioCreate(BaseModel):
     direccion: Optional[str] = None
     telefono: Optional[int] = None
     correo: EmailStr
-    password: str
     id_rol: int
     id_empresa: Optional[int] = None
 

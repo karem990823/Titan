@@ -240,7 +240,7 @@ function LoginPage() {
                     <label htmlFor="login-password" style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary }}>
                       Contraseña
                     </label>
-                    <Link to="#" style={{ fontSize: 12, fontWeight: 600, color: COLORS.red, textDecoration: "none" }}>
+                    <Link to="/olvide-password" style={{ fontSize: 12, fontWeight: 600, color: COLORS.red, textDecoration: "none" }}>
                       ¿Olvidaste tu contraseña?
                     </Link>
                   </div>

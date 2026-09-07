@@ -17,6 +17,13 @@ class Settings(BaseSettings):
 
     UPLOADS_DIR: str = "uploads"
 
+    SMTP_HOST: str
+    SMTP_PORT: int = 587
+    SMTP_USER: str
+    SMTP_PASSWORD: str
+    SMTP_FROM_NAME: str = "TITAN-ES"
+    FRONTEND_URL: str = "http://localhost:5173"
+
     @field_validator("JWT_SECRET_KEY")
     @classmethod
     def validar_jwt_secret(cls, valor: str) -> str:

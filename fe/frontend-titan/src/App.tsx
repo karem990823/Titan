@@ -14,6 +14,8 @@ import RequireRole from "./components/Layout/RequireRole";
 import LandingPage from "./features/publico/LandingPage";
 import ConsultaCertificado from "./features/publico/ConsultaCertificado";
 import LoginPage from "./features/auth/LoginPage";
+import OlvidePassword from "./features/auth/OlvidePassword";
+import CrearPassword from "./features/auth/CrearPassword";
 
 // Académico (Administrador / Instructor)
 import Calendario from "./features/academico/Calendario";
@@ -68,6 +70,8 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/certificados" element={<ConsultaCertificado />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/olvide-password" element={<OlvidePassword />} />
+        <Route path="/crear-password" element={<CrearPassword />} />
 
         <Route element={<AuthenticatedShell />}>
           <Route
