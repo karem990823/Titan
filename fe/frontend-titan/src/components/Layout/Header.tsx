@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { COLORS } from "../../constants/color";
 import { useAuth } from "../../features/auth/useAuth";
 
 function Header() {
@@ -19,42 +18,24 @@ function Header() {
   };
 
   return (
-    <div
-      style={{
-        background: COLORS.white,
-        borderBottom: `1px solid ${COLORS.borderGray}`,
-        padding: "16px 28px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 24,
-      }}
-    >
+    <div className="bg-surface-container-lowest border-b border-outline-variant/40 rounded-xl px-gap-lg py-gap-md mb-gap-lg flex items-center justify-between flex-wrap gap-gap-sm">
       <div>
-        <h2 style={{ margin: 0, color: COLORS.textPrimary }}>TITAN-ES</h2>
-        <p style={{ margin: 0, color: COLORS.textSecondary, fontSize: 13 }}>{fecha}</p>
+        <h2 className="font-headline-sm text-headline-sm uppercase text-on-surface m-0">TITAN-ES</h2>
+        <p className="font-body-sm text-body-sm text-on-surface-variant m-0 capitalize">{fecha}</p>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{ textAlign: "right" }}>
-          <p style={{ margin: 0, fontWeight: 600, color: COLORS.blue, fontSize: 14 }}>
+      <div className="flex items-center gap-gap-md">
+        <div className="text-right">
+          <p className="font-label-lg text-label-lg text-secondary m-0">
             {usuario?.nombre} {usuario?.apellido || ""}
           </p>
-          <p style={{ margin: 0, fontSize: 12, color: COLORS.textSecondary }}>{usuario?.rol_nombre}</p>
+          <p className="font-label-sm text-label-sm text-on-surface-variant m-0 uppercase">{usuario?.rol_nombre}</p>
         </div>
         <button
           onClick={handleLogout}
-          style={{
-            background: "none",
-            border: `1px solid ${COLORS.borderGray}`,
-            borderRadius: 8,
-            padding: "8px 14px",
-            fontSize: 13,
-            fontWeight: 600,
-            color: COLORS.textSecondary,
-            cursor: "pointer",
-          }}
+          className="inline-flex items-center gap-gap-2xs px-gap-sm py-2 rounded-lg border border-outline-variant text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-lg text-label-lg uppercase tracking-wider"
         >
+          <span className="material-symbols-outlined text-lg">logout</span>
           Cerrar sesión
         </button>
       </div>

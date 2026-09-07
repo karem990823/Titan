@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from App.Modulo_Cursos.models.rol_model import Rol
 from App.Modulo_Cursos.models.usuario_model import Usuario
+from App.Modulo_Cursos.utils.email import enviar_correo_crear_password
+from App.Modulo_Cursos.utils.password_reset import generar_enlace_password
 from App.Modulo_Cursos.utils.response import api_response
 from App.Modulo_Cursos.utils.security import hash_password
 
@@ -28,6 +30,8 @@ def _serializar_trabajador(usuario: Usuario) -> dict:
         "apellido": usuario.apellido,
         "numero_identificacion": usuario.numero_identificacion,
         "tipo_documento": usuario.tipo_documento.nombre if usuario.tipo_documento else None,
+        "direccion": usuario.direccion,
+        "telefono": usuario.telefono,
     }
 
 
@@ -82,16 +86,26 @@ def crear_usuario(db: Session, data) -> dict:
     _validar_correo_disponible(db, data.correo)
     _validar_rol_existe(db, data.id_rol)
 
-    payload = data.model_dump(exclude={"password"})
-    nuevo = Usuario(**payload, password_hash=hash_password(data.password))
+    # Sin password_hash todavía: el administrador nunca define la contraseña
+    # de otra persona. Se le envía un enlace de un solo uso para que la cree
+    # ella misma; hasta entonces la cuenta no puede iniciar sesión (login
+    # rechaza password_hash nulo).
+    nuevo = Usuario(**data.model_dump())
 
     db.add(nuevo)
     db.commit()
     db.refresh(nuevo)
 
+    enlace = generar_enlace_password(db, nuevo.id_usuario)
+    correo_enviado = enviar_correo_crear_password(nuevo.correo, nuevo.nombre, enlace)
+
     return api_response(
         success=True,
-        message="Usuario creado correctamente",
+        message=(
+            "Usuario creado correctamente. Se le envió un correo para crear su contraseña."
+            if correo_enviado else
+            "Usuario creado correctamente, pero no se pudo enviar el correo de activación. Usa 'olvidé mi contraseña' para reintentar."
+        ),
         data=_serializar(nuevo)
     )
 
@@ -101,6 +115,13 @@ def listar_usuarios(db: Session, tipo_registro: str | None = None, id_rol: int |
 
     if tipo_registro:
         query = query.filter(Usuario.tipo_registro == tipo_registro)
+    else:
+        # Sin filtro explícito, esta es la lista de "Usuarios" del administrador
+        # (gestión de cuentas) — los trabajadores nunca tienen contraseña ni
+        # acceso al sistema, así que no pertenecen aquí. Quien sí los necesita
+        # los pide explícitamente con tipo_registro="trabajador" o vía los
+        # endpoints dedicados de trabajadores.
+        query = query.filter(Usuario.tipo_registro != "trabajador")
     if id_rol:
         query = query.filter(Usuario.id_rol == id_rol)
 
@@ -152,15 +173,32 @@ def desactivar_usuario(db: Session, id_usuario: int) -> dict:
     )
 
 
-# --- Auto-registro de trabajadores (Empresa) ---
+# --- Registro de trabajadores (Empresa sobre sí misma, o Administrador sobre cualquier empresa) ---
 
-def crear_trabajador_propio(db: Session, data, empresa_actual: Usuario) -> dict:
+def _validar_empresa_existe(db: Session, id_empresa: int) -> Usuario:
+    empresa = db.query(Usuario).filter(
+        Usuario.id_usuario == id_empresa,
+        Usuario.tipo_registro == "empresa",
+    ).first()
+    if not empresa:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_response(
+                success=False,
+                message="No se pudo registrar el trabajador",
+                error="La empresa indicada no existe"
+            )
+        )
+    return empresa
+
+
+def _crear_trabajador(db: Session, data, id_empresa: int) -> dict:
     rol_participante = db.query(Rol).filter(Rol.nombre_rol == "Participante").first()
 
     nuevo = Usuario(
         tipo_registro="trabajador",
         id_rol=rol_participante.id_rol if rol_participante else None,
-        id_empresa=empresa_actual.id_usuario,
+        id_empresa=id_empresa,
         password_hash=None,
         **data.model_dump(),
     )
@@ -176,11 +214,11 @@ def crear_trabajador_propio(db: Session, data, empresa_actual: Usuario) -> dict:
     )
 
 
-def listar_trabajadores_propios(db: Session, empresa_actual: Usuario) -> dict:
+def _listar_trabajadores(db: Session, id_empresa: int) -> dict:
     trabajadores = db.query(Usuario).options(
         joinedload(Usuario.tipo_documento)
     ).filter(
-        Usuario.id_empresa == empresa_actual.id_usuario,
+        Usuario.id_empresa == id_empresa,
         Usuario.tipo_registro == "trabajador",
     ).order_by(Usuario.nombre).all()
 
@@ -188,6 +226,52 @@ def listar_trabajadores_propios(db: Session, empresa_actual: Usuario) -> dict:
         success=True,
         message="Trabajadores obtenidos correctamente",
         data=[_serializar_trabajador(t) for t in trabajadores]
+    )
+
+
+def crear_trabajador_propio(db: Session, data, empresa_actual: Usuario) -> dict:
+    return _crear_trabajador(db, data, empresa_actual.id_usuario)
+
+
+def listar_trabajadores_propios(db: Session, empresa_actual: Usuario) -> dict:
+    return _listar_trabajadores(db, empresa_actual.id_usuario)
+
+
+def crear_trabajador_admin(db: Session, data, id_empresa: int) -> dict:
+    _validar_empresa_existe(db, id_empresa)
+    return _crear_trabajador(db, data, id_empresa)
+
+
+def listar_trabajadores_admin(db: Session, id_empresa: int) -> dict:
+    _validar_empresa_existe(db, id_empresa)
+    return _listar_trabajadores(db, id_empresa)
+
+
+def listar_todos_los_trabajadores(db: Session) -> dict:
+    trabajadores = db.query(Usuario).options(
+        joinedload(Usuario.tipo_documento)
+    ).filter(Usuario.tipo_registro == "trabajador").order_by(Usuario.nombre).all()
+
+    # id_empresa es una clave foránea autoreferenciada a usuarios sin
+    # relationship() declarada en el modelo; se resuelve con una sola
+    # consulta adicional en vez de repetirla por cada trabajador (N+1).
+    ids_empresa = {t.id_empresa for t in trabajadores if t.id_empresa}
+    nombres_empresa = {
+        e.id_usuario: e.nombre
+        for e in db.query(Usuario).filter(Usuario.id_usuario.in_(ids_empresa)).all()
+    } if ids_empresa else {}
+
+    data = []
+    for t in trabajadores:
+        item = _serializar_trabajador(t)
+        item["id_empresa"] = t.id_empresa
+        item["empresa"] = nombres_empresa.get(t.id_empresa)
+        data.append(item)
+
+    return api_response(
+        success=True,
+        message="Trabajadores obtenidos correctamente",
+        data=data
     )
 
 

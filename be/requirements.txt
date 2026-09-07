@@ -13,3 +13,4 @@ cryptography==50.0.1
 python-multipart==0.0.32
 pytest==9.0.3
 httpx==0.28.1
+APScheduler==3.10.4

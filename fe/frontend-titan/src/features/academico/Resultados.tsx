@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../api/client";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_RESULTADOS, COLORS } from "../../constants/color";
+import { API_RESULTADOS } from "../../constants/color";
 import type { ApiResponse, ResultadoItem, ToastType } from "../../types";
 
 interface ResultadosProps {
@@ -25,29 +25,29 @@ function Resultados({ onToast }: ResultadosProps) {
       <PageHeader title="Resultados" subtitle="Calificaciones de las evaluaciones presentadas por los participantes." />
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: 48, color: COLORS.textSecondary, fontSize: 14 }}>Cargando...</div>
+        <div className="text-center py-gap-2xl text-on-surface-variant font-body-sm text-body-sm">Cargando...</div>
       ) : resultados.length === 0 ? (
-        <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <p style={{ color: COLORS.textSecondary, fontSize: 14, margin: 0 }}>Aún no hay evaluaciones calificadas.</p>
+        <div className="bg-surface-container-lowest rounded-xl p-gap-2xl text-center">
+          <p className="font-body-sm text-body-sm text-on-surface-variant m-0">Aún no hay evaluaciones calificadas.</p>
         </div>
       ) : (
-        <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <div className="bg-surface-container-lowest rounded-xl overflow-hidden overflow-x-auto">
+          <table className="w-full border-collapse font-body-sm text-body-sm">
             <thead>
-              <tr style={{ background: COLORS.lightGray, textAlign: "left" }}>
-                <th style={{ padding: "10px 16px" }}>Participante (ID)</th>
-                <th style={{ padding: "10px 16px" }}>Evaluación (ID)</th>
-                <th style={{ padding: "10px 16px" }}>Fecha</th>
-                <th style={{ padding: "10px 16px" }}>Puntaje</th>
+              <tr className="bg-surface-container-low text-left">
+                <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Participante (ID)</th>
+                <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Evaluación (ID)</th>
+                <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Fecha</th>
+                <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Puntaje</th>
               </tr>
             </thead>
             <tbody>
               {resultados.map((r) => (
-                <tr key={r.id_resultado} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
-                  <td style={{ padding: "10px 16px" }}>#{r.id_usuario}</td>
-                  <td style={{ padding: "10px 16px" }}>#{r.id_evaluacion}</td>
-                  <td style={{ padding: "10px 16px" }}>{r.fecha}</td>
-                  <td style={{ padding: "10px 16px", fontWeight: 700, color: COLORS.blue }}>{r.puntaje}</td>
+                <tr key={r.id_resultado} className="border-t border-outline-variant/20">
+                  <td className="px-gap-sm py-gap-xs">#{r.id_usuario}</td>
+                  <td className="px-gap-sm py-gap-xs">#{r.id_evaluacion}</td>
+                  <td className="px-gap-sm py-gap-xs">{r.fecha}</td>
+                  <td className="px-gap-sm py-gap-xs font-bold text-secondary">{r.puntaje}</td>
                 </tr>
               ))}
             </tbody>

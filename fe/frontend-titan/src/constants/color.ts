@@ -27,6 +27,8 @@ export const API_ACCIDENTES = "/api/accidentes";
 export const API_TIPOS_ACCIDENTE = "/api/tipos-accidente";
 export const API_REPORTES = "/api/reportes";
 export const API_DASHBOARD = "/api/dashboard";
+export const API_SOLICITUDES_CONTACTO = "/api/solicitudes-contacto";
+export const API_ALERTAS = "/api/alertas";
 
 export const COLORS = {
   red: "#C0161C",
@@ -46,13 +48,14 @@ export const COLORS = {
 
 export const inputStyle: CSSProperties = {
   width: "100%",
-  padding: "9px 12px",
+  padding: "10px 14px",
   fontSize: 14,
-  border: `1px solid ${COLORS.borderGray}`,
+  border: "none",
   borderRadius: 8,
-  background: COLORS.white,
-  color: COLORS.textPrimary,
+  background: "#eff4ff",
+  color: "#0d1c2f",
   outline: "none",
   boxSizing: "border-box",
   fontFamily: "inherit",
+  transition: "background-color 0.15s ease",
 };

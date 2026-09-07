@@ -3,7 +3,7 @@ import { apiFetch, apiFetchBlob, descargarBlob } from "../../api/client";
 import ConfirmModal from "../../components/UI/ConfirmModal";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_REPORTES, COLORS, inputStyle } from "../../constants/color";
+import { API_REPORTES, inputStyle } from "../../constants/color";
 import type { ApiResponse, Reporte, ResultadoCierreMes, ToastType } from "../../types";
 
 interface ReportesProps {
@@ -85,28 +85,30 @@ function Reportes({ onToast }: ReportesProps) {
     <div>
       <PageHeader title="Reportes" subtitle="Genera el reporte diario de actividad y ejecuta el cierre mensual de participantes aprobados." />
 
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20, flex: "1 1 340px", maxWidth: 420 }}>
-          <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 6px 0" }}>Reporte diario</p>
-            <p style={{ fontSize: 13, color: COLORS.textSecondary, margin: "0 0 16px 0" }}>
+      <div className="flex gap-gap-lg flex-wrap items-start">
+        <div className="flex flex-col gap-gap-lg flex-1 min-w-[340px] max-w-md">
+          <div className="bg-surface-container-lowest rounded-xl p-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-2xs">Reporte diario</p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant mb-gap-md">
               Resume los cursos programados, asistencias marcadas, incidentes registrados y certificados emitidos hoy. Una vez generado, no se puede editar.
             </p>
-            <button onClick={generarDiario} disabled={generandoDiario} style={{
-              background: generandoDiario ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600,
-              cursor: generandoDiario ? "not-allowed" : "pointer",
-            }}>
+            <button
+              onClick={generarDiario}
+              disabled={generandoDiario}
+              className={`px-gap-md py-2 rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider transition-colors ${
+                generandoDiario ? "bg-outline-variant cursor-not-allowed" : "bg-secondary hover:bg-on-secondary-fixed"
+              }`}
+            >
               {generandoDiario ? "Generando..." : "Generar reporte diario"}
             </button>
           </div>
 
-          <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 6px 0" }}>Cierre de mes</p>
-            <p style={{ fontSize: 13, color: COLORS.textSecondary, margin: "0 0 16px 0" }}>
+          <div className="bg-surface-container-lowest rounded-xl p-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-2xs">Cierre de mes</p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant mb-gap-md">
               Consolida a los participantes aprobados del mes elegido. Los aprobados sin certificado emitido aparecen como excluidos, con el motivo.
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+            <div className="grid grid-cols-2 gap-x-gap-md">
               <Field label="Mes">
                 <select value={mes} onChange={(e) => setMes(parseInt(e.target.value))} style={{ ...inputStyle, appearance: "none" }}>
                   {MESES.map((nombre, idx) => (
@@ -118,63 +120,62 @@ function Reportes({ onToast }: ReportesProps) {
                 <input type="number" value={anio} onChange={(e) => setAnio(parseInt(e.target.value))} style={inputStyle} />
               </Field>
             </div>
-            <button onClick={() => setConfirmandoCierre(true)} disabled={ejecutandoCierre} style={{
-              background: ejecutandoCierre ? "#ccc" : COLORS.red, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600,
-              cursor: ejecutandoCierre ? "not-allowed" : "pointer",
-            }}>
+            <button
+              onClick={() => setConfirmandoCierre(true)}
+              disabled={ejecutandoCierre}
+              className={`px-gap-md py-2 rounded-lg text-on-primary font-label-lg text-label-lg uppercase tracking-wider transition-colors ${
+                ejecutandoCierre ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+              }`}
+            >
               {ejecutandoCierre ? "Ejecutando..." : "Ejecutar cierre de mes"}
             </button>
           </div>
 
           {resultadoCierre && (
-            <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "20px 24px" }}>
-              <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.successText, margin: "0 0 8px 0" }}>
+            <div className="bg-surface-container-lowest rounded-xl p-gap-lg">
+              <p className="font-label-lg text-label-lg text-green-700 uppercase mb-gap-2xs">
                 Incluidos ({resultadoCierre.incluidos.length})
               </p>
-              {resultadoCierre.incluidos.length === 0 && <p style={{ fontSize: 12, color: COLORS.textSecondary, margin: "0 0 12px 0" }}>Ninguno.</p>}
+              {resultadoCierre.incluidos.length === 0 && <p className="font-body-sm text-body-sm text-on-surface-variant mb-gap-sm">Ninguno.</p>}
               {resultadoCierre.incluidos.map((p, i) => (
-                <p key={i} style={{ fontSize: 12, margin: "2px 0" }}>{p.trabajador} — {p.curso}</p>
+                <p key={i} className="font-body-sm text-body-sm m-0.5">{p.trabajador} — {p.curso}</p>
               ))}
-              <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.errorText, margin: "16px 0 8px 0" }}>
+              <p className="font-label-lg text-label-lg text-error uppercase mt-gap-md mb-gap-2xs">
                 Excluidos ({resultadoCierre.excluidos.length})
               </p>
-              {resultadoCierre.excluidos.length === 0 && <p style={{ fontSize: 12, color: COLORS.textSecondary, margin: 0 }}>Ninguno.</p>}
+              {resultadoCierre.excluidos.length === 0 && <p className="font-body-sm text-body-sm text-on-surface-variant m-0">Ninguno.</p>}
               {resultadoCierre.excluidos.map((p, i) => (
-                <p key={i} style={{ fontSize: 12, margin: "2px 0" }}>{p.trabajador} — {p.curso} · <span style={{ color: COLORS.textSecondary }}>{p.motivo_exclusion}</span></p>
+                <p key={i} className="font-body-sm text-body-sm m-0.5">{p.trabajador} — {p.curso} · <span className="text-on-surface-variant">{p.motivo_exclusion}</span></p>
               ))}
             </div>
           )}
         </div>
 
-        <div style={{ flex: "1 1 360px", background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, overflow: "hidden" }}>
-          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: 0, padding: "16px 20px", borderBottom: `1px solid ${COLORS.borderGray}` }}>
+        <div className="flex-1 min-w-[360px] bg-surface-container-lowest rounded-xl overflow-hidden">
+          <p className="font-headline-sm text-headline-sm text-on-surface m-0 px-gap-md py-gap-sm border-b border-outline-variant/30">
             Reportes diarios generados ({reportes.length})
           </p>
           {reportes.length === 0 ? (
-            <p style={{ color: COLORS.textSecondary, fontSize: 14, padding: 24, margin: 0 }}>Aún no se ha generado ningún reporte.</p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant p-gap-lg m-0">Aún no se ha generado ningún reporte.</p>
           ) : (
             reportes.map((r) => (
               <div
                 key={r.id_reporte}
                 onClick={() => setReporteAbierto(r)}
-                style={{
-                  padding: "12px 20px", borderTop: `1px solid ${COLORS.borderGray}`, fontSize: 13, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                }}
+                className="px-gap-md py-gap-sm border-t border-outline-variant/20 font-body-sm text-body-sm cursor-pointer flex items-center justify-between gap-gap-sm"
               >
                 <span>
-                  <span style={{ fontWeight: 600 }}>{r.fecha}</span>
-                  <span style={{ color: COLORS.textSecondary }}> — generado {r.fecha_creacion}</span>
+                  <span className="font-semibold text-on-surface">{r.fecha}</span>
+                  <span className="text-on-surface-variant"> — generado {r.fecha_creacion}</span>
                 </span>
                 <button
                   onClick={(e) => { e.stopPropagation(); descargarPdf(r); }}
                   disabled={descargandoId === r.id_reporte}
-                  style={{
-                    background: "none", color: COLORS.blue, border: `1px solid ${COLORS.blue}`,
-                    borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 600,
-                    cursor: descargandoId === r.id_reporte ? "not-allowed" : "pointer", flexShrink: 0,
-                  }}
+                  className={`px-gap-sm py-1.5 rounded-md border font-label-sm text-label-sm font-bold whitespace-nowrap transition-colors ${
+                    descargandoId === r.id_reporte
+                      ? "border-outline-variant text-on-surface-variant cursor-not-allowed"
+                      : "border-secondary text-secondary hover:bg-secondary-container/40"
+                  }`}
                 >
                   {descargandoId === r.id_reporte ? "Descargando..." : "Descargar PDF"}
                 </button>
@@ -187,29 +188,27 @@ function Reportes({ onToast }: ReportesProps) {
       {reporteAbierto && (
         <div
           onClick={() => setReporteAbierto(null)}
-          style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
+          className="fixed inset-0 z-[1100] bg-on-background/50 flex items-center justify-center p-margin-mobile"
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.white, borderRadius: 12, padding: "24px 28px", maxWidth: 560, maxHeight: "70vh", overflow: "auto" }}>
-            <p style={{ fontWeight: 700, fontSize: 15, margin: "0 0 12px 0" }}>Reporte del {reporteAbierto.fecha}</p>
-            <pre style={{ fontSize: 12, background: COLORS.lightGray, padding: 16, borderRadius: 8, whiteSpace: "pre-wrap" }}>
+          <div onClick={(e) => e.stopPropagation()} className="bg-surface-container-lowest rounded-xl p-gap-lg max-w-xl max-h-[70vh] overflow-auto">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Reporte del {reporteAbierto.fecha}</p>
+            <pre className="font-body-sm text-body-sm bg-surface-container-low p-gap-sm rounded-lg whitespace-pre-wrap">
               {JSON.stringify(JSON.parse(reporteAbierto.contenido_json), null, 2)}
             </pre>
-            <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+            <div className="flex gap-gap-xs mt-gap-xs">
               <button
                 onClick={() => descargarPdf(reporteAbierto)}
                 disabled={descargandoId === reporteAbierto.id_reporte}
-                style={{
-                  background: descargandoId === reporteAbierto.id_reporte ? "#ccc" : COLORS.red, color: COLORS.white, border: "none", borderRadius: 8,
-                  padding: "8px 18px", fontSize: 13, fontWeight: 600,
-                  cursor: descargandoId === reporteAbierto.id_reporte ? "not-allowed" : "pointer",
-                }}
+                className={`px-gap-md py-2 rounded-lg text-on-primary font-label-lg text-label-lg uppercase tracking-wider transition-colors ${
+                  descargandoId === reporteAbierto.id_reporte ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+                }`}
               >
                 {descargandoId === reporteAbierto.id_reporte ? "Descargando..." : "Descargar PDF"}
               </button>
-              <button onClick={() => setReporteAbierto(null)} style={{
-                background: COLORS.blue, color: COLORS.white, border: "none", borderRadius: 8,
-                padding: "8px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer",
-              }}>
+              <button
+                onClick={() => setReporteAbierto(null)}
+                className="px-gap-md py-2 rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider bg-secondary hover:bg-on-secondary-fixed"
+              >
                 Cerrar
               </button>
             </div>

@@ -145,3 +145,8 @@ VALUES
 ('Efectivo'),
 ('Transferencia bancaria'),
 ('Tarjeta de crédito/débito');
+
+INSERT INTO tipos_alerta(nombre)
+VALUES
+('Vencimiento de certificado'),
+('Factura pendiente de pago');

@@ -198,9 +198,12 @@ CREATE TABLE tipos_alerta(
 CREATE TABLE alertas(
     id_alerta INT PRIMARY KEY AUTO_INCREMENT,
     id_tipo_alerta INT,
+    id_referencia INT,
+    mensaje VARCHAR(255),
     fecha_vencimiento DATE,
     estado ENUM('pendiente','enviada','vencida'),
     id_usuario INT,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
     FOREIGN KEY (id_tipo_alerta) REFERENCES tipos_alerta(id_tipo_alerta)
 );
@@ -268,4 +271,25 @@ CREATE TABLE consolidado_participantes(
     FOREIGN KEY (id_consolidado) REFERENCES consolidados_mensuales(id_consolidado) ON DELETE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
     FOREIGN KEY (id_curso) REFERENCES cursos(id_curso)
+);
+CREATE TABLE solicitudes_contacto(
+    id_solicitud INT PRIMARY KEY AUTO_INCREMENT,
+    nombre_contacto VARCHAR(150),
+    empresa VARCHAR(150),
+    correo VARCHAR(150),
+    telefono VARCHAR(30),
+    tipo_servicio VARCHAR(150),
+    numero_personal INT,
+    detalle TEXT,
+    atendida BOOLEAN DEFAULT FALSE,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE password_reset_tokens(
+    id_token INT PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT NOT NULL,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,
+    fecha_expiracion DATETIME NOT NULL,
+    usado BOOLEAN DEFAULT FALSE,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
 );

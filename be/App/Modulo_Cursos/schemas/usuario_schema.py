@@ -1,6 +1,6 @@
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, model_validator
 
 
 class UsuarioBase(BaseModel):
@@ -27,9 +27,22 @@ class UsuarioCreate(BaseModel):
     direccion: Optional[str] = None
     telefono: Optional[int] = None
     correo: EmailStr
-    password: str
     id_rol: int
     id_empresa: Optional[int] = None
+
+    @model_validator(mode="after")
+    def _validar_identificacion_empresa(self):
+        # "empresa" cubre tanto empresas reales (NIT) como independientes
+        # (documento personal) — cualquiera de las dos identifica la cuenta,
+        # pero no puede quedar sin ninguna.
+        if self.tipo_registro == "empresa":
+            tiene_nit = self.nit is not None
+            tiene_documento = self.id_tipo is not None and self.numero_identificacion is not None
+            if not tiene_nit and not tiene_documento:
+                raise ValueError(
+                    "Una cuenta de empresa necesita NIT, o tipo y número de documento si es independiente"
+                )
+        return self
 
 
 class UsuarioUpdate(BaseModel):

@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { COLORS } from "../../constants/color";
 import type { ToastType } from "../../types";
 
 interface ToastProps {
@@ -8,28 +7,29 @@ interface ToastProps {
   onClose: () => void;
 }
 
+const ESTILOS: Record<ToastType, { bg: string; text: string; icon: string }> = {
+  success: { bg: "bg-green-50", text: "text-green-800", icon: "check_circle" },
+  error: { bg: "bg-error-container", text: "text-on-error-container", icon: "error" },
+  warning: { bg: "bg-tertiary-fixed", text: "text-on-tertiary-fixed", icon: "warning" },
+};
+
 function Toast({ message, type, onClose }: ToastProps) {
   useEffect(() => {
     const t = setTimeout(onClose, 4000);
     return () => clearTimeout(t);
   }, [onClose]);
 
-  const bg = type === "success" ? COLORS.successBg : type === "error" ? COLORS.errorBg : COLORS.warningBg;
-  const color = type === "success" ? COLORS.successText : type === "error" ? COLORS.errorText : COLORS.warningText;
-  const icon = type === "success" ? "✔" : type === "error" ? "✖" : "⚠";
+  const { bg, text, icon } = ESTILOS[type];
 
   return (
-    <div style={{
-      position: "fixed", bottom: 24, right: 24, zIndex: 1000,
-      background: bg, color, border: `1px solid ${color}`,
-      borderRadius: 10, padding: "12px 20px",
-      display: "flex", alignItems: "center", gap: 10,
-      fontWeight: 500, fontSize: 14, maxWidth: 380,
-      boxShadow: "0 4px 16px rgba(0,0,0,0.10)"
-    }}>
-      <span>{icon}</span>
-      <span style={{ flex: 1 }}>{message}</span>
-      <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color, fontSize: 16, padding: 0 }}>×</button>
+    <div
+      className={`fixed bottom-gap-lg right-gap-lg z-[1000] ${bg} ${text} rounded-lg shadow-xl px-gap-md py-gap-sm flex items-center gap-gap-xs max-w-sm font-body-sm text-body-sm`}
+    >
+      <span className="material-symbols-outlined text-xl">{icon}</span>
+      <span className="flex-1">{message}</span>
+      <button onClick={onClose} className={`${text} text-lg leading-none p-0 bg-transparent border-none cursor-pointer`}>
+        ×
+      </button>
     </div>
   );
 }

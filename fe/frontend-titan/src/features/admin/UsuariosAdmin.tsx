@@ -3,15 +3,17 @@ import { apiFetch } from "../../api/client";
 import ConfirmModal from "../../components/UI/ConfirmModal";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_ROLES, API_TIPOS_IDENTIFICACION, API_USUARIOS, COLORS, inputStyle } from "../../constants/color";
+import { API_ROLES, API_TIPOS_IDENTIFICACION, API_USUARIOS, inputStyle } from "../../constants/color";
 import type { ApiResponse, Rol, TipoDocumento, ToastType, UsuarioAdmin as UsuarioAdminType } from "../../types";
 
 interface UsuariosAdminProps {
   onToast: (message: string, type: ToastType) => void;
 }
 
+type TipoCuenta = "usuario" | "empresa" | "independiente";
+
 interface FormState {
-  tipo_registro: "empresa" | "trabajador" | "usuario";
+  tipoCuenta: TipoCuenta;
   nombre: string;
   apellido: string;
   id_tipo: string;
@@ -20,13 +22,12 @@ interface FormState {
   direccion: string;
   telefono: string;
   correo: string;
-  password: string;
   id_rol: string;
   id_empresa: string;
 }
 
 const FORM_VACIO: FormState = {
-  tipo_registro: "usuario",
+  tipoCuenta: "usuario",
   nombre: "",
   apellido: "",
   id_tipo: "",
@@ -35,7 +36,6 @@ const FORM_VACIO: FormState = {
   direccion: "",
   telefono: "",
   correo: "",
-  password: "",
   id_rol: "",
   id_empresa: "",
 };
@@ -67,24 +67,23 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      await apiFetch<ApiResponse<UsuarioAdminType>>(`${API_USUARIOS}/`, {
+      const res = await apiFetch<ApiResponse<UsuarioAdminType>>(`${API_USUARIOS}/`, {
         method: "POST",
         body: JSON.stringify({
-          tipo_registro: form.tipo_registro,
+          tipo_registro: form.tipoCuenta === "usuario" ? "usuario" : "empresa",
           nombre: form.nombre,
-          apellido: form.apellido || null,
-          id_tipo: form.id_tipo ? parseInt(form.id_tipo) : null,
-          numero_identificacion: form.numero_identificacion ? parseInt(form.numero_identificacion) : null,
-          nit: form.nit ? parseInt(form.nit) : null,
+          apellido: form.tipoCuenta === "independiente" ? form.apellido || null : null,
+          id_tipo: form.tipoCuenta !== "empresa" && form.id_tipo ? parseInt(form.id_tipo) : null,
+          numero_identificacion: form.tipoCuenta !== "empresa" && form.numero_identificacion ? parseInt(form.numero_identificacion) : null,
+          nit: form.tipoCuenta === "empresa" && form.nit ? parseInt(form.nit) : null,
           direccion: form.direccion || null,
           telefono: form.telefono ? parseInt(form.telefono) : null,
           correo: form.correo,
-          password: form.password,
           id_rol: parseInt(form.id_rol),
-          id_empresa: form.id_empresa ? parseInt(form.id_empresa) : null,
+          id_empresa: form.tipoCuenta === "usuario" && form.id_empresa ? parseInt(form.id_empresa) : null,
         }),
       });
-      onToast("Cuenta creada correctamente.", "success");
+      onToast(res.message || "Cuenta creada correctamente.", "success");
       setForm(FORM_VACIO);
       cargarUsuarios();
     } catch (err) {
@@ -106,19 +105,36 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
     }
   };
 
+  const camposIdentificacionValidos =
+    form.tipoCuenta === "empresa"
+      ? form.nit.trim() !== ""
+      : form.tipoCuenta === "independiente"
+      ? form.apellido.trim() !== "" && form.id_tipo !== "" && form.numero_identificacion.trim() !== ""
+      : true;
+
+  const botonDeshabilitado =
+    loading || !form.nombre.trim() || !form.correo.trim() || !form.id_rol || !camposIdentificacionValidos;
+
   return (
     <div>
-      <PageHeader title="Usuarios" subtitle="Crea y administra las cuentas de administradores, instructores y empresas." />
+      <PageHeader title="Usuarios" subtitle="Crea y administra las cuentas de administradores, instructores, empresas e independientes." />
 
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <form onSubmit={handleSubmit} style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px", flex: "1 1 380px", maxWidth: 480 }}>
-          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Nueva cuenta</p>
+      <div className="flex gap-gap-lg flex-wrap items-start">
+        <form onSubmit={handleSubmit} className="bg-surface-container-lowest rounded-xl p-gap-lg flex-1 min-w-[380px] max-w-lg">
+          <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Nueva cuenta</p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <div className="grid grid-cols-2 gap-x-gap-md">
             <Field label="Tipo de cuenta" required>
-              <select value={form.tipo_registro} onChange={(e) => setForm({ ...form, tipo_registro: e.target.value as FormState["tipo_registro"] })} style={{ ...inputStyle, appearance: "none" }}>
+              <select
+                value={form.tipoCuenta}
+                onChange={(e) =>
+                  setForm({ ...FORM_VACIO, tipoCuenta: e.target.value as TipoCuenta, id_rol: form.id_rol })
+                }
+                style={{ ...inputStyle, appearance: "none" }}
+              >
                 <option value="usuario">Personal TITAN-ES (admin/instructor)</option>
-                <option value="empresa">Empresa / Independiente</option>
+                <option value="empresa">Empresa</option>
+                <option value="independiente">Independiente</option>
               </select>
             </Field>
             <Field label="Rol" required>
@@ -131,25 +147,29 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
             </Field>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
-            <Field label="Nombre / Razón social" required>
+          {form.tipoCuenta === "independiente" ? (
+            <div className="grid grid-cols-2 gap-x-gap-md">
+              <Field label="Nombre" required>
+                <input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} style={inputStyle} required />
+              </Field>
+              <Field label="Apellido" required>
+                <input value={form.apellido} onChange={(e) => setForm({ ...form, apellido: e.target.value })} style={inputStyle} required />
+              </Field>
+            </div>
+          ) : (
+            <Field label={form.tipoCuenta === "empresa" ? "Razón social" : "Nombre"} required>
               <input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} style={inputStyle} required />
             </Field>
-            <Field label="Apellido">
-              <input value={form.apellido} onChange={(e) => setForm({ ...form, apellido: e.target.value })} style={inputStyle} />
-            </Field>
-          </div>
+          )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
-            <Field label="Correo" required>
-              <input type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} style={inputStyle} required />
-            </Field>
-            <Field label="Contraseña" required>
-              <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} style={inputStyle} required />
-            </Field>
-          </div>
+          <Field label="Correo" required>
+            <input type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} style={inputStyle} required />
+          </Field>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mb-gap-sm">
+            Se le enviará un correo a esta dirección con un enlace para crear su propia contraseña.
+          </p>
 
-          {form.tipo_registro === "usuario" && (
+          {form.tipoCuenta === "usuario" && (
             <Field label="Empresa a la que pertenece">
               <select value={form.id_empresa} onChange={(e) => setForm({ ...form, id_empresa: e.target.value })} style={{ ...inputStyle, appearance: "none" }}>
                 <option value="">Sin asignar</option>
@@ -160,10 +180,32 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
             </Field>
           )}
 
-          {form.tipo_registro === "empresa" && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
-              <Field label="NIT">
-                <input type="number" value={form.nit} onChange={(e) => setForm({ ...form, nit: e.target.value })} style={inputStyle} />
+          {form.tipoCuenta === "empresa" && (
+            <Field label="NIT" required>
+              <input type="number" value={form.nit} onChange={(e) => setForm({ ...form, nit: e.target.value })} style={inputStyle} required />
+            </Field>
+          )}
+
+          {(form.tipoCuenta === "usuario" || form.tipoCuenta === "independiente") && (
+            <div className="grid grid-cols-2 gap-x-gap-md">
+              <Field label="Tipo de documento" required={form.tipoCuenta === "independiente"}>
+                <select value={form.id_tipo} onChange={(e) => setForm({ ...form, id_tipo: e.target.value })} style={{ ...inputStyle, appearance: "none" }} required={form.tipoCuenta === "independiente"}>
+                  <option value="">Seleccionar...</option>
+                  {tiposDoc.map((t) => (
+                    <option key={t.id_tipo} value={t.id_tipo}>{t.nombre}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Número de documento" required={form.tipoCuenta === "independiente"}>
+                <input type="number" value={form.numero_identificacion} onChange={(e) => setForm({ ...form, numero_identificacion: e.target.value })} style={inputStyle} required={form.tipoCuenta === "independiente"} />
+              </Field>
+            </div>
+          )}
+
+          {(form.tipoCuenta === "empresa" || form.tipoCuenta === "independiente") && (
+            <div className="grid grid-cols-2 gap-x-gap-md">
+              <Field label="Dirección">
+                <input value={form.direccion} onChange={(e) => setForm({ ...form, direccion: e.target.value })} style={inputStyle} />
               </Field>
               <Field label="Teléfono">
                 <input type="number" value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} style={inputStyle} />
@@ -171,62 +213,44 @@ function UsuariosAdmin({ onToast }: UsuariosAdminProps) {
             </div>
           )}
 
-          {form.tipo_registro === "usuario" && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
-              <Field label="Tipo de documento">
-                <select value={form.id_tipo} onChange={(e) => setForm({ ...form, id_tipo: e.target.value })} style={{ ...inputStyle, appearance: "none" }}>
-                  <option value="">Seleccionar...</option>
-                  {tiposDoc.map((t) => (
-                    <option key={t.id_tipo} value={t.id_tipo}>{t.nombre}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Número de documento">
-                <input type="number" value={form.numero_identificacion} onChange={(e) => setForm({ ...form, numero_identificacion: e.target.value })} style={inputStyle} />
-              </Field>
-            </div>
-          )}
-
-          <button type="submit" disabled={loading} style={{
-            background: loading ? "#ccc" : COLORS.red, color: COLORS.white, border: "none",
-            borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 600, marginTop: 8,
-            cursor: loading ? "not-allowed" : "pointer",
-          }}>
+          <button
+            type="submit"
+            disabled={botonDeshabilitado}
+            className={`px-gap-lg py-2.5 rounded-lg text-on-primary font-headline-sm text-headline-sm uppercase tracking-wider mt-gap-xs transition-colors ${
+              botonDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+            }`}
+          >
             {loading ? "Creando..." : "Crear cuenta"}
           </button>
         </form>
 
-        <div style={{ flex: "1 1 340px" }}>
-          <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <div className="flex-1 min-w-[340px]">
+          <div className="bg-surface-container-lowest rounded-xl overflow-hidden overflow-x-auto">
+            <table className="w-full border-collapse font-body-sm text-body-sm">
               <thead>
-                <tr style={{ background: COLORS.lightGray, textAlign: "left" }}>
-                  <th style={{ padding: "10px 14px" }}>Nombre</th>
-                  <th style={{ padding: "10px 14px" }}>Rol</th>
-                  <th style={{ padding: "10px 14px" }}>Estado</th>
-                  <th style={{ padding: "10px 14px" }}></th>
+                <tr className="bg-surface-container-low text-left">
+                  <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Nombre</th>
+                  <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Rol</th>
+                  <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Estado</th>
+                  <th className="px-gap-sm py-gap-xs"></th>
                 </tr>
               </thead>
               <tbody>
                 {usuarios.map((u) => (
-                  <tr key={u.id_usuario} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
-                    <td style={{ padding: "10px 14px" }}>
-                      <div style={{ fontWeight: 600 }}>{u.nombre} {u.apellido || ""}</div>
-                      <div style={{ color: COLORS.textSecondary, fontSize: 11 }}>{u.correo}</div>
+                  <tr key={u.id_usuario} className="border-t border-outline-variant/20">
+                    <td className="px-gap-sm py-gap-xs">
+                      <div className="font-semibold text-on-surface">{u.nombre} {u.apellido || ""}</div>
+                      <div className="text-on-surface-variant font-label-sm text-label-sm">{u.correo}</div>
                     </td>
-                    <td style={{ padding: "10px 14px" }}>{u.rol_nombre}</td>
-                    <td style={{ padding: "10px 14px" }}>
-                      <span style={{
-                        fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 999,
-                        background: u.estado_activo ? COLORS.successBg : COLORS.errorBg,
-                        color: u.estado_activo ? COLORS.successText : COLORS.errorText,
-                      }}>
+                    <td className="px-gap-sm py-gap-xs">{u.rol_nombre}</td>
+                    <td className="px-gap-sm py-gap-xs">
+                      <span className={`font-label-sm text-label-sm font-bold px-gap-xs py-0.5 rounded-full ${u.estado_activo ? "bg-green-50 text-green-700" : "bg-error-container text-on-error-container"}`}>
                         {u.estado_activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td style={{ padding: "10px 14px" }}>
+                    <td className="px-gap-sm py-gap-xs">
                       {u.estado_activo && (
-                        <button onClick={() => setUsuarioADesactivar(u)} style={{ background: "none", border: "none", color: COLORS.errorText, cursor: "pointer", fontSize: 12 }}>
+                        <button onClick={() => setUsuarioADesactivar(u)} className="bg-transparent border-none text-error cursor-pointer font-body-sm text-body-sm">
                           Desactivar
                         </button>
                       )}

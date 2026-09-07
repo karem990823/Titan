@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "./App.css";
-import { COLORS } from "./constants/color";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import type { ToastState, ToastType } from "./types";
 import { useAuth } from "./features/auth/useAuth";
@@ -12,8 +11,11 @@ import Header from "./components/Layout/Header";
 import RequireRole from "./components/Layout/RequireRole";
 
 // Público y autenticación
+import LandingPage from "./features/publico/LandingPage";
 import ConsultaCertificado from "./features/publico/ConsultaCertificado";
 import LoginPage from "./features/auth/LoginPage";
+import OlvidePassword from "./features/auth/OlvidePassword";
+import CrearPassword from "./features/auth/CrearPassword";
 
 // Académico (Administrador / Instructor)
 import Calendario from "./features/academico/Calendario";
@@ -35,6 +37,8 @@ import MisCertificados from "./features/empresa/MisCertificados";
 
 // Administrador
 import UsuariosAdmin from "./features/admin/UsuariosAdmin";
+import GestionTrabajadores from "./features/admin/GestionTrabajadores";
+import Alertas from "./features/admin/Alertas";
 import Facturacion from "./features/admin/Facturacion";
 import Inventario from "./features/admin/Inventario";
 import Reportes from "./features/admin/Reportes";
@@ -47,13 +51,11 @@ function RedirectHome() {
 
 function AuthenticatedShell() {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: COLORS.lightGray, fontFamily: "Inter, Segoe UI, Arial, sans-serif" }}>
+    <div className="flex min-h-screen bg-surface-container-low font-body-md text-body-md text-on-surface">
       <Sidebar />
-      <main style={{ flex: 1, padding: "36px 40px", overflowY: "auto" }}>
+      <main className="flex-1 overflow-y-auto p-gap-lg md:p-gap-xl">
         <Header />
-        <div style={{ padding: "0 40px 40px" }}>
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
     </div>
   );
@@ -67,8 +69,11 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<ConsultaCertificado />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/certificados" element={<ConsultaCertificado />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/olvide-password" element={<OlvidePassword />} />
+        <Route path="/crear-password" element={<CrearPassword />} />
 
         <Route element={<AuthenticatedShell />}>
           <Route
@@ -191,6 +196,22 @@ function App() {
             element={
               <RequireRole roles={["Administrador"]}>
                 <UsuariosAdmin onToast={showToast} />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/admin/trabajadores"
+            element={
+              <RequireRole roles={["Administrador"]}>
+                <GestionTrabajadores onToast={showToast} />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/admin/alertas"
+            element={
+              <RequireRole roles={["Administrador"]}>
+                <Alertas onToast={showToast} />
               </RequireRole>
             }
           />

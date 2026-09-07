@@ -1,35 +1,24 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../api/client";
-import { API_DASHBOARD, COLORS } from "../../constants/color";
+import { API_DASHBOARD } from "../../constants/color";
 import type { ApiResponse, ResumenDashboard } from "../../types";
 
 interface CardProps {
   titulo: string;
   valor: number | string;
+  icono: string;
 }
 
-function Card({ titulo, valor }: CardProps) {
+function Card({ titulo, valor, icono }: CardProps) {
   return (
-    <div
-      style={{
-        background: COLORS.white,
-        border: `1px solid ${COLORS.borderGray}`,
-        borderRadius: 12,
-        padding: 24,
-        minWidth: 220,
-        flex: 1,
-        transition: "all 0.2s ease",
-        cursor: "pointer",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-4px)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0px)";
-      }}
-    >
-      <h3 style={{ margin: 0, fontSize: 14, color: COLORS.textSecondary }}>{titulo}</h3>
-      <p style={{ fontSize: 30, fontWeight: 700, color: COLORS.blue, margin: "10px 0 0 0" }}>{valor}</p>
+    <div className="flex-1 min-w-[220px] bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-shadow p-gap-lg flex flex-col gap-gap-sm">
+      <div className="flex items-center justify-between">
+        <span className="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">{titulo}</span>
+        <div className="w-10 h-10 rounded-lg bg-primary-container/10 text-primary flex items-center justify-center">
+          <span className="material-symbols-outlined text-xl">{icono}</span>
+        </div>
+      </div>
+      <p className="font-headline-lg text-headline-lg text-on-surface m-0">{valor}</p>
     </div>
   );
 }
@@ -44,19 +33,19 @@ function Dashboard() {
   }, []);
 
   return (
-    <div>
-      <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: 30, marginBottom: 24 }}>
-        <h1 style={{ margin: 0, color: COLORS.red, fontSize: 28 }}>TITAN-ES</h1>
-        <p style={{ marginTop: 8, color: COLORS.textSecondary }}>
+    <div className="flex flex-col gap-gap-lg">
+      <div className="relative overflow-hidden bg-on-secondary-fixed rounded-xl p-gap-lg text-surface-bright">
+        <h1 className="font-display-hero text-headline-lg uppercase m-0 text-surface-bright">TITAN-ES</h1>
+        <p className="font-body-md text-body-md text-secondary-fixed mt-gap-2xs mb-0">
           Centro de Entrenamiento en Trabajo Seguro en Alturas
         </p>
       </div>
 
-      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-        <Card titulo="Cursos Programados" valor={resumen?.cursos_programados ?? "—"} />
-        <Card titulo="Participantes" valor={resumen?.participantes ?? "—"} />
-        <Card titulo="Cursos Hoy" valor={resumen?.cursos_hoy ?? "—"} />
-        <Card titulo="Inscripciones" valor={resumen?.inscripciones ?? "—"} />
+      <div className="flex flex-wrap gap-gap-md">
+        <Card titulo="Cursos Programados" valor={resumen?.cursos_programados ?? "—"} icono="calendar_month" />
+        <Card titulo="Participantes" valor={resumen?.participantes ?? "—"} icono="groups" />
+        <Card titulo="Cursos Hoy" valor={resumen?.cursos_hoy ?? "—"} icono="today" />
+        <Card titulo="Inscripciones" valor={resumen?.inscripciones ?? "—"} icono="assignment_ind" />
       </div>
     </div>
   );

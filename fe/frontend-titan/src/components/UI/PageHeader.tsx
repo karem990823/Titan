@@ -1,5 +1,3 @@
-import { COLORS } from "../../constants/color";
-
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
@@ -7,12 +5,12 @@ interface PageHeaderProps {
 
 function PageHeader({ title, subtitle }: PageHeaderProps) {
   return (
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-        <div style={{ width: 4, height: 28, background: COLORS.red, borderRadius: 2 }} />
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: COLORS.textPrimary, margin: 0 }}>{title}</h1>
+    <div className="mb-gap-lg">
+      <div className="flex items-center gap-gap-xs">
+        <div className="w-1 h-7 bg-primary-container rounded-full" />
+        <h1 className="font-headline-md text-headline-md uppercase text-on-surface m-0">{title}</h1>
       </div>
-      {subtitle && <p style={{ color: COLORS.textSecondary, fontSize: 14, margin: "4px 0 0 16px" }}>{subtitle}</p>}
+      {subtitle && <p className="text-on-surface-variant font-body-sm text-body-sm mt-1 ml-gap-sm">{subtitle}</p>}
     </div>
   );
 }

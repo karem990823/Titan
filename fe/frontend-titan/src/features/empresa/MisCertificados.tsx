@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch, apiFetchBlob, descargarBlob } from "../../api/client";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_CERTIFICADOS, COLORS } from "../../constants/color";
+import { API_CERTIFICADOS } from "../../constants/color";
 import type { ApiResponse, Certificado, ToastType } from "../../types";
 
 interface MisCertificadosProps {
@@ -38,37 +38,33 @@ function MisCertificados({ onToast }: MisCertificadosProps) {
       <PageHeader title="Mis certificados" subtitle="Certificados de formación obtenidos por los trabajadores de tu empresa." />
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: 48, color: COLORS.textSecondary, fontSize: 14 }}>Cargando...</div>
+        <div className="text-center py-gap-2xl text-on-surface-variant font-body-sm text-body-sm">Cargando...</div>
       ) : certificados.length === 0 ? (
-        <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <p style={{ fontSize: 36, margin: "0 0 12px 0" }}>🎓</p>
-          <p style={{ fontWeight: 600, color: COLORS.textPrimary, margin: "0 0 6px 0" }}>Aún no hay certificados</p>
-          <p style={{ color: COLORS.textSecondary, fontSize: 14, margin: 0 }}>
+        <div className="bg-surface-container-lowest rounded-xl p-gap-2xl text-center flex flex-col items-center gap-gap-2xs">
+          <span className="material-symbols-outlined text-4xl text-secondary">workspace_premium</span>
+          <p className="font-headline-sm text-headline-sm text-on-surface m-0">Aún no hay certificados</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant m-0">
             Aparecerán aquí cuando tus trabajadores completen y aprueben un curso.
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="flex flex-col gap-gap-xs">
           {certificados.map((cert) => (
-            <div key={cert.id_certificado} style={{
-              background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12,
-              padding: "16px 20px", display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap",
-            }}>
-              <div style={{ flex: 1, minWidth: 180 }}>
-                <p style={{ fontWeight: 700, fontSize: 15, color: COLORS.textPrimary, margin: "0 0 3px 0" }}>{cert.curso_nombre}</p>
-                <p style={{ color: COLORS.textSecondary, fontSize: 13, margin: 0 }}>
+            <div key={cert.id_certificado} className="bg-surface-container-lowest rounded-xl px-gap-md py-gap-sm flex items-center gap-gap-lg flex-wrap">
+              <div className="flex-1 min-w-[180px]">
+                <p className="font-headline-sm text-headline-sm text-on-surface m-0 normal-case">{cert.curso_nombre}</p>
+                <p className="font-body-sm text-body-sm text-on-surface-variant m-0">
                   {cert.codigo} · Emitido {cert.fecha_emision} · Vence {cert.fecha_vencimiento}
                 </p>
               </div>
               <button
                 onClick={() => descargar(cert)}
                 disabled={descargandoId === cert.id_certificado}
-                style={{
-                  background: COLORS.red, color: COLORS.white, border: "none", borderRadius: 8,
-                  padding: "8px 18px", fontSize: 13, fontWeight: 600,
-                  cursor: descargandoId === cert.id_certificado ? "not-allowed" : "pointer",
-                }}
+                className={`inline-flex items-center gap-gap-2xs px-gap-md py-2 rounded-lg text-on-primary font-label-lg text-label-lg uppercase tracking-wider transition-colors ${
+                  descargandoId === cert.id_certificado ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+                }`}
               >
+                <span className="material-symbols-outlined text-base">file_download</span>
                 {descargandoId === cert.id_certificado ? "Descargando..." : "Descargar PDF"}
               </button>
             </div>

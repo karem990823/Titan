@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "../../api/client";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_CURSOS, API_INSCRIPCIONES, API_PROGRAMACIONES, API_USUARIOS, COLORS, inputStyle } from "../../constants/color";
+import { API_CURSOS, API_INSCRIPCIONES, API_PROGRAMACIONES, API_USUARIOS, inputStyle } from "../../constants/color";
 import type { ApiResponse, Curso, Programacion, ResultadoInscripcion, ToastType, Trabajador } from "../../types";
 
 interface InscribirTrabajadorProps {
@@ -58,11 +58,13 @@ function InscribirTrabajador({ onToast }: InscribirTrabajadorProps) {
     }
   };
 
+  const botonDeshabilitado = loading || !idTrabajador || !idProgramacion;
+
   return (
     <div>
       <PageHeader title="Inscribir trabajador" subtitle="Programa a uno de tus trabajadores en un curso disponible." />
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "28px 32px", flex: "1 1 340px", maxWidth: 480 }}>
+      <div className="flex gap-gap-lg flex-wrap items-start">
+        <div className="bg-surface-container-lowest rounded-xl p-gap-lg flex-1 min-w-[340px] max-w-lg">
           <form onSubmit={handleSubmit}>
             <Field label="Trabajador" required>
               <select value={idTrabajador} onChange={(e) => setIdTrabajador(e.target.value)} style={{ ...inputStyle, appearance: "none" }} required>
@@ -101,26 +103,31 @@ function InscribirTrabajador({ onToast }: InscribirTrabajadorProps) {
             )}
 
             {idCurso && programaciones.length === 0 && (
-              <p style={{ fontSize: 13, color: COLORS.warningText, background: COLORS.warningBg, padding: "10px 14px", borderRadius: 8, margin: "0 0 16px 0" }}>
-                ⚠ No hay fechas con cupos disponibles para este curso.
+              <p className="font-body-sm text-body-sm text-on-tertiary-fixed-variant bg-tertiary-fixed px-gap-sm py-2.5 rounded-lg mb-gap-sm">
+                No hay fechas con cupos disponibles para este curso.
               </p>
             )}
 
-            <button type="submit" disabled={loading} style={{
-              background: loading ? "#ccc" : COLORS.red, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "10px 28px", fontSize: 14, fontWeight: 600,
-              cursor: loading ? "not-allowed" : "pointer",
-            }}>
+            <button
+              type="submit"
+              disabled={botonDeshabilitado}
+              className={`px-gap-lg py-2.5 rounded-lg text-on-primary font-headline-sm text-headline-sm uppercase tracking-wider transition-colors ${
+                botonDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+              }`}
+            >
               {loading ? "Inscribiendo..." : "Inscribir trabajador"}
             </button>
           </form>
         </div>
 
         {resultado && (
-          <div style={{ background: COLORS.successBg, border: "1px solid #C0DD97", borderRadius: 12, padding: "24px 28px", flex: "0 0 200px" }}>
-            <p style={{ fontWeight: 700, color: COLORS.successText, margin: "0 0 16px 0", fontSize: 15 }}>✔ Inscripción exitosa</p>
-            <p style={{ fontSize: 11, color: "#639922", margin: "0 0 2px 0", fontWeight: 600, textTransform: "uppercase" }}>Cupos restantes</p>
-            <p style={{ fontSize: 24, fontWeight: 700, color: COLORS.successText, margin: 0 }}>{resultado.cupos_restantes}</p>
+          <div className="bg-green-50 border border-green-200 rounded-xl p-gap-lg flex-none w-[220px]">
+            <p className="font-headline-sm text-headline-sm text-green-800 mb-gap-sm flex items-center gap-gap-2xs">
+              <span className="material-symbols-outlined text-xl">check_circle</span>
+              Inscripción exitosa
+            </p>
+            <p className="font-label-sm text-label-sm text-green-700 uppercase m-0">Cupos restantes</p>
+            <p className="font-headline-lg text-headline-lg text-green-800 m-0">{resultado.cupos_restantes}</p>
           </div>
         )}
       </div>
