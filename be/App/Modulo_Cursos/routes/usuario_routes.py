@@ -9,6 +9,7 @@ from App.Modulo_Cursos.controllers.usuario_controller import (
     crear_usuario,
     desactivar_usuario,
     listar_instructores,
+    listar_todos_los_trabajadores,
     listar_trabajadores_admin,
     listar_trabajadores_propios,
     listar_usuarios,
@@ -95,6 +96,14 @@ def listar_trabajadores(
 
 
 # --- Registro de trabajadores por parte del Administrador (a nombre de cualquier empresa) ---
+
+@router.get("/trabajadores/todos")
+def listar_todos_trabajadores(
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin),
+):
+    return listar_todos_los_trabajadores(db)
+
 
 @router.post("/empresas/{id_empresa}/trabajadores")
 def crear_trabajador_para_empresa(

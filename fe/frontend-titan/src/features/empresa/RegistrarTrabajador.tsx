@@ -125,22 +125,34 @@ function RegistrarTrabajador({ onToast }: RegistrarTrabajadorProps) {
           </form>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-xl p-gap-lg flex-1 min-w-[320px]">
-          <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">
+        <div className="bg-surface-container-lowest rounded-xl overflow-hidden flex-1 min-w-[320px]">
+          <p className="font-headline-sm text-headline-sm text-on-surface m-0 px-gap-md py-gap-sm border-b border-outline-variant/30">
             Trabajadores registrados ({trabajadores.length})
           </p>
           {trabajadores.length === 0 ? (
-            <p className="font-body-sm text-body-sm text-on-surface-variant">Aún no has registrado trabajadores.</p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant p-gap-lg m-0">Aún no has registrado trabajadores.</p>
           ) : (
-            <div className="flex flex-col gap-gap-2xs">
-              {trabajadores.map((t) => (
-                <div key={t.id_usuario} className="px-gap-sm py-2.5 bg-surface-container-low rounded-lg font-body-sm text-body-sm">
-                  <span className="font-semibold text-on-surface">{t.nombre} {t.apellido}</span>
-                  <span className="text-on-surface-variant ml-gap-2xs">
-                    {t.tipo_documento} · {t.numero_identificacion}
-                  </span>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse font-body-sm text-body-sm">
+                <thead>
+                  <tr className="bg-surface-container-low text-left">
+                    <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Nombre</th>
+                    <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Documento</th>
+                    <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Dirección</th>
+                    <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Teléfono</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trabajadores.map((t) => (
+                    <tr key={t.id_usuario} className="border-t border-outline-variant/20">
+                      <td className="px-gap-sm py-gap-xs font-semibold text-on-surface normal-case">{t.nombre} {t.apellido}</td>
+                      <td className="px-gap-sm py-gap-xs">{t.tipo_documento} {t.numero_identificacion}</td>
+                      <td className="px-gap-sm py-gap-xs normal-case">{t.direccion || "—"}</td>
+                      <td className="px-gap-sm py-gap-xs">{t.telefono || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

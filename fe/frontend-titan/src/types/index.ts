@@ -97,6 +97,13 @@ export interface Trabajador {
   apellido: string | null;
   numero_identificacion: number | null;
   tipo_documento: string | null;
+  direccion: string | null;
+  telefono: number | null;
+}
+
+export interface TrabajadorConEmpresa extends Trabajador {
+  id_empresa: number | null;
+  empresa: string | null;
 }
 
 export interface Documento {

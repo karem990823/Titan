@@ -4,7 +4,7 @@ import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
 import DocumentoViewerModal from "../../components/UI/DocumentoViewerModal";
 import { API_DOCUMENTOS, API_TIPOS_IDENTIFICACION, API_USUARIOS, inputStyle } from "../../constants/color";
-import type { ApiResponse, Documento, TipoDocumento, ToastType, Trabajador, UsuarioAdmin } from "../../types";
+import type { ApiResponse, Documento, TipoDocumento, ToastType, Trabajador, TrabajadorConEmpresa, UsuarioAdmin } from "../../types";
 
 interface GestionTrabajadoresProps {
   onToast: (message: string, type: ToastType) => void;
@@ -33,6 +33,8 @@ function GestionTrabajadores({ onToast }: GestionTrabajadoresProps) {
   const [idEmpresa, setIdEmpresa] = useState("");
   const [tiposDoc, setTiposDoc] = useState<TipoDocumento[]>([]);
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
+  const [todosLosTrabajadores, setTodosLosTrabajadores] = useState<TrabajadorConEmpresa[]>([]);
+  const [cargandoTodos, setCargandoTodos] = useState(true);
   const [form, setForm] = useState<FormState>(FORM_VACIO);
   const [guardando, setGuardando] = useState(false);
 
@@ -45,11 +47,20 @@ function GestionTrabajadores({ onToast }: GestionTrabajadoresProps) {
   const [descargandoId, setDescargandoId] = useState<number | null>(null);
   const [documentoAVer, setDocumentoAVer] = useState<Documento | null>(null);
 
+  const cargarTodosLosTrabajadores = () => {
+    setCargandoTodos(true);
+    apiFetch<ApiResponse<TrabajadorConEmpresa[]>>(`${API_USUARIOS}/trabajadores/todos`)
+      .then((res) => setTodosLosTrabajadores(res.data))
+      .catch(() => onToast("No se pudo cargar el listado general de trabajadores.", "error"))
+      .finally(() => setCargandoTodos(false));
+  };
+
   useEffect(() => {
     apiFetch<ApiResponse<UsuarioAdmin[]>>(`${API_USUARIOS}/?tipo_registro=empresa`)
       .then((res) => setEmpresas(res.data))
       .catch(() => onToast("No se pudieron cargar las empresas.", "error"));
     apiFetch<TipoDocumento[]>(`${API_TIPOS_IDENTIFICACION}/`).then(setTiposDoc).catch(() => setTiposDoc([]));
+    cargarTodosLosTrabajadores();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -92,6 +103,7 @@ function GestionTrabajadores({ onToast }: GestionTrabajadoresProps) {
       onToast("Trabajador registrado correctamente.", "success");
       setForm(FORM_VACIO);
       cargarTrabajadores(idEmpresa);
+      cargarTodosLosTrabajadores();
     } catch (err) {
       onToast(err instanceof Error ? err.message : "Error inesperado", "error");
     } finally {
@@ -158,8 +170,53 @@ function GestionTrabajadores({ onToast }: GestionTrabajadoresProps) {
     <div>
       <PageHeader
         title="Trabajadores"
-        subtitle="Registra trabajadores de cualquier empresa y gestiona sus documentos, sin necesidad de que la empresa lo haga."
+        subtitle="Consulta todos los trabajadores registrados, y registra o gestiona los de cualquier empresa sin necesidad de que ella lo haga."
       />
+
+      <div className="bg-surface-container-lowest rounded-xl overflow-hidden mb-gap-lg">
+        <p className="font-headline-sm text-headline-sm text-on-surface m-0 px-gap-md py-gap-sm border-b border-outline-variant/30">
+          Todos los trabajadores registrados ({todosLosTrabajadores.length})
+        </p>
+        {cargandoTodos ? (
+          <p className="font-body-sm text-body-sm text-on-surface-variant p-gap-lg m-0">Cargando...</p>
+        ) : todosLosTrabajadores.length === 0 ? (
+          <p className="font-body-sm text-body-sm text-on-surface-variant p-gap-lg m-0">Aún no hay trabajadores registrados en ninguna empresa.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse font-body-sm text-body-sm">
+              <thead>
+                <tr className="bg-surface-container-low text-left">
+                  <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Nombre</th>
+                  <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Documento</th>
+                  <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Empresa</th>
+                  <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Teléfono</th>
+                  <th className="px-gap-sm py-gap-xs"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {todosLosTrabajadores.map((t) => (
+                  <tr key={t.id_usuario} className="border-t border-outline-variant/20">
+                    <td className="px-gap-sm py-gap-xs font-semibold text-on-surface normal-case">{t.nombre} {t.apellido}</td>
+                    <td className="px-gap-sm py-gap-xs">{t.tipo_documento} {t.numero_identificacion}</td>
+                    <td className="px-gap-sm py-gap-xs normal-case">{t.empresa || "—"}</td>
+                    <td className="px-gap-sm py-gap-xs">{t.telefono || "—"}</td>
+                    <td className="px-gap-sm py-gap-xs">
+                      {t.id_empresa && (
+                        <button
+                          onClick={() => seleccionarEmpresa(String(t.id_empresa))}
+                          className="bg-transparent border-none text-secondary cursor-pointer font-label-sm text-label-sm uppercase font-bold"
+                        >
+                          Gestionar
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <div className="bg-surface-container-lowest rounded-xl p-gap-lg max-w-md mb-gap-lg">
         <Field label="Empresa" required>
@@ -310,15 +367,25 @@ function GestionTrabajadores({ onToast }: GestionTrabajadoresProps) {
             {trabajadores.length === 0 ? (
               <p className="font-body-sm text-body-sm text-on-surface-variant p-gap-lg m-0">Aún no hay trabajadores registrados.</p>
             ) : (
-              <div className="flex flex-col">
-                {trabajadores.map((t) => (
-                  <div key={t.id_usuario} className="px-gap-md py-gap-sm border-t border-outline-variant/20 font-body-sm text-body-sm first:border-t-0">
-                    <span className="font-semibold text-on-surface">{t.nombre} {t.apellido}</span>
-                    <span className="text-on-surface-variant ml-gap-2xs">
-                      {t.tipo_documento} · {t.numero_identificacion}
-                    </span>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse font-body-sm text-body-sm">
+                  <thead>
+                    <tr className="bg-surface-container-low text-left">
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Nombre</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Documento</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Teléfono</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trabajadores.map((t) => (
+                      <tr key={t.id_usuario} className="border-t border-outline-variant/20">
+                        <td className="px-gap-sm py-gap-xs font-semibold text-on-surface normal-case">{t.nombre} {t.apellido}</td>
+                        <td className="px-gap-sm py-gap-xs">{t.tipo_documento} {t.numero_identificacion}</td>
+                        <td className="px-gap-sm py-gap-xs">{t.telefono || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
