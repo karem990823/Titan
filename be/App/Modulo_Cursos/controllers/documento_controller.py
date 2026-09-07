@@ -1,3 +1,4 @@
+import mimetypes
 import os
 import uuid
 
@@ -169,4 +170,16 @@ def descargar_documento(db: Session, id_documento: int, current_user: Usuario) -
             )
         )
 
-    return FileResponse(documento.ruta_archivo, filename=documento.nombre)
+    # FileResponse adivina el Content-Type a partir de "filename" (el nombre
+    # que puso quien subió el archivo, ej. "Cédula", casi nunca con
+    # extensión), no del archivo real en disco — así que sin esto siempre
+    # caía en un genérico "application/octet-stream" y el navegador no podía
+    # previsualizar PDFs/imágenes ni el archivo descargado conservaba su
+    # extensión real.
+    extension_real = os.path.splitext(documento.ruta_archivo)[1]
+    tipo_real, _ = mimetypes.guess_type(documento.ruta_archivo)
+    nombre_descarga = documento.nombre
+    if extension_real and not nombre_descarga.lower().endswith(extension_real.lower()):
+        nombre_descarga = f"{nombre_descarga}{extension_real}"
+
+    return FileResponse(documento.ruta_archivo, filename=nombre_descarga, media_type=tipo_real)

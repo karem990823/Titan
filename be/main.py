@@ -1,6 +1,10 @@
+import logging
+
+from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from App.Modulo_Cursos.routes import (
     accidente_routes,
+    alerta_routes,
     asistencia_routes,
     auth_routes,
     certificado_indumentaria_routes,
@@ -24,17 +28,31 @@ from App.Modulo_Cursos.routes import (
     resultado_routes,
     rol_routes,
     salud_routes,
+    solicitud_contacto_routes,
     tipo_accidente_routes,
     tipo_identificacion_routes,
     usuario_routes
 )
-from App.Modulo_Cursos.config.database import engine, Base
+from App.Modulo_Cursos.config.database import engine, Base, SessionLocal
+from App.Modulo_Cursos.controllers.alerta_controller import generar_alertas
 from App.Modulo_Cursos.middleware.error_middleware import register_middlewares
 from fastapi.exceptions import RequestValidationError
 from App.Modulo_Cursos.exceptions import (
     validation_exception_handler,
     general_exception_handler
 )
+
+logger = logging.getLogger("titan.scheduler")
+
+
+def _tarea_generar_alertas():
+    db = SessionLocal()
+    try:
+        generar_alertas(db)
+    except Exception:
+        logger.exception("Fallo la generación automática de alertas")
+    finally:
+        db.close()
 
 
 # Nota: crear las tablas en el evento de arranque para evitar errores
@@ -61,6 +79,9 @@ app.add_exception_handler(
 register_middlewares(app)
 
 
+scheduler = BackgroundScheduler(timezone="UTC")
+
+
 @app.on_event("startup")
 def on_startup():
     try:
@@ -68,6 +89,16 @@ def on_startup():
         print("Tablas de la base de datos creadas (si no existían)")
     except Exception as e:
         print(f"Advertencia: no se pudieron crear las tablas: {e}")
+
+    # Revisa certificados por vencer y facturas pendientes una vez al día;
+    # también se puede disparar a mano desde /api/alertas/generar.
+    scheduler.add_job(_tarea_generar_alertas, "interval", hours=24, id="generar_alertas", replace_existing=True)
+    scheduler.start()
+
+
+@app.on_event("shutdown")
+def on_shutdown():
+    scheduler.shutdown(wait=False)
 
 # 4. Incluir las rutas del Módulo de Cursos
 # Aquí conectamos el router que creamos en curso_routes.py
@@ -95,9 +126,11 @@ app.include_router(resultado_routes.router)
 app.include_router(rol_routes.router)
 app.include_router(asistencia_routes.router)
 app.include_router(accidente_routes.router)
+app.include_router(alerta_routes.router)
 app.include_router(tipo_accidente_routes.router)
 app.include_router(reporte_routes.router)
 app.include_router(dashboard_routes.router)
+app.include_router(solicitud_contacto_routes.router)
 
 # 5. Ruta de bienvenida (opcional)
 @app.get("/")

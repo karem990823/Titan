@@ -6,7 +6,6 @@ import {
   API_CERTIFICADOS_INDUMENTARIA,
   API_INDUMENTARIA,
   API_INSPECCIONES_INDUMENTARIA,
-  COLORS,
   inputStyle,
 } from "../../constants/color";
 import type { ApiResponse, Indumentaria, InspeccionIndumentaria, ToastType } from "../../types";
@@ -120,31 +119,36 @@ function Inventario({ onToast }: InventarioProps) {
     }
   };
 
+  const botonItemDeshabilitado = guardandoItem || !nombre.trim();
+  const botonInspeccionDeshabilitado = guardandoInspeccion || !idIndumentaria || !idUsuario.trim() || !fecha;
+
   return (
     <div>
       <PageHeader title="Inventario" subtitle="Administra el equipo de protección y sus inspecciones periódicas." />
 
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20, flex: "1 1 360px", maxWidth: 440 }}>
-          <form onSubmit={crearItem} style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Nuevo elemento</p>
+      <div className="flex gap-gap-lg flex-wrap items-start">
+        <div className="flex flex-col gap-gap-lg flex-1 min-w-[360px] max-w-lg">
+          <form onSubmit={crearItem} className="bg-surface-container-lowest rounded-xl p-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Nuevo elemento</p>
             <Field label="Nombre" required>
               <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Arnés de cuerpo completo" style={inputStyle} required />
             </Field>
             <Field label="Descripción">
               <input value={descripcion} onChange={(e) => setDescripcion(e.target.value)} style={inputStyle} />
             </Field>
-            <button type="submit" disabled={guardandoItem} style={{
-              background: guardandoItem ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600,
-              cursor: guardandoItem ? "not-allowed" : "pointer",
-            }}>
+            <button
+              type="submit"
+              disabled={botonItemDeshabilitado}
+              className={`px-gap-md py-2 rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider transition-colors ${
+                botonItemDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-secondary hover:bg-on-secondary-fixed"
+              }`}
+            >
               {guardandoItem ? "Guardando..." : "Agregar al inventario"}
             </button>
           </form>
 
-          <form onSubmit={crearInspeccion} style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Registrar inspección</p>
+          <form onSubmit={crearInspeccion} className="bg-surface-container-lowest rounded-xl p-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Registrar inspección</p>
             <Field label="Elemento" required>
               <select value={idIndumentaria} onChange={(e) => setIdIndumentaria(e.target.value)} style={{ ...inputStyle, appearance: "none" }} required>
                 <option value="">Seleccionar...</option>
@@ -153,7 +157,7 @@ function Inventario({ onToast }: InventarioProps) {
                 ))}
               </select>
             </Field>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+            <div className="grid grid-cols-2 gap-x-gap-md">
               <Field label="ID del usuario" required>
                 <input type="number" value={idUsuario} onChange={(e) => setIdUsuario(e.target.value)} style={inputStyle} required />
               </Field>
@@ -170,33 +174,31 @@ function Inventario({ onToast }: InventarioProps) {
             <Field label="Observaciones">
               <input value={observaciones} onChange={(e) => setObservaciones(e.target.value)} style={inputStyle} />
             </Field>
-            <button type="submit" disabled={guardandoInspeccion} style={{
-              background: guardandoInspeccion ? "#ccc" : COLORS.red, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600,
-              cursor: guardandoInspeccion ? "not-allowed" : "pointer",
-            }}>
+            <button
+              type="submit"
+              disabled={botonInspeccionDeshabilitado}
+              className={`px-gap-md py-2 rounded-lg text-on-primary font-label-lg text-label-lg uppercase tracking-wider transition-colors ${
+                botonInspeccionDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+              }`}
+            >
               {guardandoInspeccion ? "Guardando..." : "Registrar inspección"}
             </button>
           </form>
         </div>
 
-        <div style={{ flex: "1 1 340px", display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "20px 24px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 12px 0" }}>Elementos ({indumentaria.length})</p>
+        <div className="flex-1 min-w-[340px] flex flex-col gap-gap-lg">
+          <div className="bg-surface-container-lowest rounded-xl p-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Elementos ({indumentaria.length})</p>
             {indumentaria.map((i) => {
               const ultima = ultimaInspeccion(i.id_indumentaria);
               const esApto = ultima?.resultado === "apto";
               return (
-                <div key={i.id_indumentaria} style={{ padding: "8px 0", borderTop: `1px solid ${COLORS.borderGray}`, fontSize: 13, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <div key={i.id_indumentaria} className="py-gap-2xs border-t border-outline-variant/20 font-body-sm text-body-sm flex justify-between items-center gap-gap-2xs">
                   <div>
-                    <span style={{ fontWeight: 600 }}>{i.nombre}</span>
-                    {i.descripcion && <span style={{ color: COLORS.textSecondary }}> — {i.descripcion}</span>}
+                    <span className="font-semibold text-on-surface">{i.nombre}</span>
+                    {i.descripcion && <span className="text-on-surface-variant"> — {i.descripcion}</span>}
                     {ultima && (
-                      <span style={{
-                        marginLeft: 8, fontSize: 11, fontWeight: 700, padding: "2px 7px", borderRadius: 999,
-                        background: esApto ? COLORS.successBg : COLORS.errorBg,
-                        color: esApto ? COLORS.successText : COLORS.errorText,
-                      }}>
+                      <span className={`ml-gap-2xs font-label-sm text-label-sm font-bold px-gap-xs py-0.5 rounded-full ${esApto ? "bg-green-50 text-green-700" : "bg-error-container text-on-error-container"}`}>
                         {esApto ? "Apto" : "No apto"}
                       </span>
                     )}
@@ -205,11 +207,11 @@ function Inventario({ onToast }: InventarioProps) {
                     <button
                       onClick={() => generarCertificado(i.id_indumentaria)}
                       disabled={generandoId === i.id_indumentaria}
-                      style={{
-                        background: "none", border: `1px solid ${COLORS.blue}`, color: COLORS.blue,
-                        borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600,
-                        cursor: generandoId === i.id_indumentaria ? "not-allowed" : "pointer", whiteSpace: "nowrap",
-                      }}
+                      className={`px-gap-xs py-1 rounded-md border font-label-sm text-label-sm font-bold whitespace-nowrap transition-colors ${
+                        generandoId === i.id_indumentaria
+                          ? "border-outline-variant text-on-surface-variant cursor-not-allowed"
+                          : "border-secondary text-secondary hover:bg-secondary-container/40"
+                      }`}
                     >
                       {generandoId === i.id_indumentaria ? "Generando..." : "Generar certificado"}
                     </button>
@@ -219,11 +221,11 @@ function Inventario({ onToast }: InventarioProps) {
             })}
           </div>
 
-          <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "20px 24px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 12px 0" }}>Inspecciones recientes ({inspecciones.length})</p>
+          <div className="bg-surface-container-lowest rounded-xl p-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Inspecciones recientes ({inspecciones.length})</p>
             {inspecciones.map((insp) => (
-              <div key={insp.id_inspeccion} style={{ padding: "8px 0", borderTop: `1px solid ${COLORS.borderGray}`, fontSize: 13 }}>
-                <span style={{ color: COLORS.textSecondary }}>{insp.fecha}</span> — {insp.resultado === "apto" ? "Apto" : "No apto"} — {insp.observaciones || "Sin observaciones"}
+              <div key={insp.id_inspeccion} className="py-gap-2xs border-t border-outline-variant/20 font-body-sm text-body-sm">
+                <span className="text-on-surface-variant">{insp.fecha}</span> — {insp.resultado === "apto" ? "Apto" : "No apto"} — {insp.observaciones || "Sin observaciones"}
               </div>
             ))}
           </div>

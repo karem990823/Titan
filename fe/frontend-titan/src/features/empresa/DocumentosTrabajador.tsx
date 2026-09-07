@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { apiFetch, apiFetchBlob, descargarBlob } from "../../api/client";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_DOCUMENTOS, API_USUARIOS, COLORS, inputStyle } from "../../constants/color";
+import DocumentoViewerModal from "../../components/UI/DocumentoViewerModal";
+import { API_DOCUMENTOS, API_USUARIOS, inputStyle } from "../../constants/color";
 import type { ApiResponse, Documento, ToastType, Trabajador } from "../../types";
 
 interface DocumentosTrabajadorProps {
@@ -18,6 +19,7 @@ function DocumentosTrabajador({ onToast }: DocumentosTrabajadorProps) {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [descargandoId, setDescargandoId] = useState<number | null>(null);
+  const [documentoAVer, setDocumentoAVer] = useState<Documento | null>(null);
 
   useEffect(() => {
     apiFetch<ApiResponse<Trabajador[]>>(`${API_USUARIOS}/trabajadores`)
@@ -82,11 +84,13 @@ function DocumentosTrabajador({ onToast }: DocumentosTrabajadorProps) {
     }
   };
 
+  const botonSubirDeshabilitado = subiendo || !nombre.trim() || !archivo;
+
   return (
     <div>
       <PageHeader title="Documentos" subtitle="Sube y consulta los documentos de tus trabajadores (cédulas, exámenes médicos, etc.)." />
 
-      <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "28px 32px", maxWidth: 620 }}>
+      <div className="bg-surface-container-lowest rounded-xl p-gap-lg max-w-2xl">
         <Field label="Trabajador" required>
           <select
             value={idTrabajador}
@@ -105,9 +109,9 @@ function DocumentosTrabajador({ onToast }: DocumentosTrabajadorProps) {
 
         {idTrabajador && (
           <>
-            <form onSubmit={handleSubmit} style={{ borderTop: `1px solid ${COLORS.borderGray}`, paddingTop: 16, marginTop: 8 }}>
-              <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Subir documento</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+            <form onSubmit={handleSubmit} className="border-t border-outline-variant/30 pt-gap-md mt-gap-xs">
+              <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Subir documento</p>
+              <div className="grid grid-cols-2 gap-x-gap-md">
                 <Field label="Nombre del documento" required>
                   <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Cédula" style={inputStyle} required />
                 </Field>
@@ -124,38 +128,42 @@ function DocumentosTrabajador({ onToast }: DocumentosTrabajadorProps) {
                   required
                 />
               </Field>
-              <button type="submit" disabled={subiendo} style={{
-                background: subiendo ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
-                borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 600,
-                cursor: subiendo ? "not-allowed" : "pointer",
-              }}>
+              <button
+                type="submit"
+                disabled={botonSubirDeshabilitado}
+                className={`px-gap-lg py-2.5 rounded-lg text-on-primary font-headline-sm text-headline-sm uppercase tracking-wider transition-colors ${
+                  botonSubirDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+                }`}
+              >
                 {subiendo ? "Subiendo..." : "Subir documento"}
               </button>
             </form>
 
-            <div style={{ marginTop: 24 }}>
-              <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>
+            <div className="mt-gap-lg">
+              <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">
                 Documentos ({documentos.length})
               </p>
               {documentos.length === 0 ? (
-                <p style={{ color: COLORS.textSecondary, fontSize: 13 }}>Sin documentos subidos aún.</p>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">Sin documentos subidos aún.</p>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div className="flex flex-col gap-gap-2xs">
                   {documentos.map((doc) => (
-                    <div key={doc.id_documento} style={{
-                      display: "flex", alignItems: "center", gap: 12,
-                      padding: "10px 14px", border: `1px solid ${COLORS.borderGray}`, borderRadius: 8,
-                    }}>
-                      <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{doc.nombre}</span>
-                      <span style={{ color: COLORS.textSecondary, fontSize: 12 }}>{doc.fecha_subida?.slice(0, 10)}</span>
+                    <div key={doc.id_documento} className="flex items-center gap-gap-sm px-gap-sm py-2.5 bg-surface-container-low rounded-lg">
+                      <span
+                        className="flex-1 font-label-lg text-label-lg text-secondary normal-case cursor-pointer hover:underline"
+                        onClick={() => setDocumentoAVer(doc)}
+                      >
+                        {doc.nombre}
+                      </span>
+                      <span className="font-body-sm text-body-sm text-on-surface-variant">{doc.fecha_subida?.slice(0, 10)}</span>
                       <button
                         onClick={() => descargar(doc)}
                         disabled={descargandoId === doc.id_documento}
-                        style={{
-                          background: "none", border: `1px solid ${COLORS.blue}`, color: COLORS.blue,
-                          borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 600,
-                          cursor: descargandoId === doc.id_documento ? "not-allowed" : "pointer",
-                        }}
+                        className={`px-gap-sm py-1.5 rounded-lg border font-label-sm text-label-sm uppercase font-bold transition-colors ${
+                          descargandoId === doc.id_documento
+                            ? "border-outline-variant text-on-surface-variant cursor-not-allowed"
+                            : "border-secondary text-secondary hover:bg-secondary-container/40"
+                        }`}
                       >
                         {descargandoId === doc.id_documento ? "..." : "Descargar"}
                       </button>
@@ -167,6 +175,14 @@ function DocumentosTrabajador({ onToast }: DocumentosTrabajadorProps) {
           </>
         )}
       </div>
+
+      {documentoAVer && (
+        <DocumentoViewerModal
+          nombre={documentoAVer.nombre}
+          urlDescarga={`${API_DOCUMENTOS}/${documentoAVer.id_documento}/descargar`}
+          onClose={() => setDocumentoAVer(null)}
+        />
+      )}
     </div>
   );
 }

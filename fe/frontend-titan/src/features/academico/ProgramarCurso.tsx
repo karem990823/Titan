@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { apiFetch } from "../../api/client";
 import PageHeader from "../../components/UI/PageHeader";
 import Field from "../../components/UI/Field";
-import { API_CURSOS, API_PROGRAMACIONES, API_USUARIOS, COLORS, inputStyle } from "../../constants/color";
+import { API_CURSOS, API_PROGRAMACIONES, API_USUARIOS, inputStyle } from "../../constants/color";
 import type { ApiResponse, Curso, Instructor, Programacion, ToastType } from "../../types";
 
 interface ProgramarCursoProps {
@@ -79,7 +79,7 @@ function ProgramarCurso({ onToast }: ProgramarCursoProps) {
   return (
     <div>
       <PageHeader title="Programar curso" subtitle="Crea una nueva sesión de formación asignando instructor, fecha, horario y cupos." />
-      <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "28px 32px", maxWidth: 580 }}>
+      <div className="bg-surface-container-lowest rounded-xl p-gap-lg max-w-xl">
 
         <Field label="Tipo de curso" required error={errors.id_curso}>
           <select value={form.id_curso}
@@ -97,19 +97,14 @@ function ProgramarCurso({ onToast }: ProgramarCursoProps) {
 
         {form.id_curso && programaciones.length > 0 && (
           <Field label="Fechas ya programadas para este curso">
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+            <div className="flex flex-col gap-gap-2xs mt-1">
               {programaciones.map((p) => (
-                <div key={p.id_programacion} style={{
-                  padding: "10px 14px", border: `1px solid ${COLORS.borderGray}`,
-                  borderRadius: 8, fontSize: 13, color: COLORS.textPrimary,
-                  background: COLORS.lightGray, display: "flex", gap: 12, alignItems: "center",
-                }}>
-                  <span>📅 {p.fecha}</span>
-                  <span>🕐 {p.hora}</span>
-                  <span style={{
-                    fontWeight: 600, marginLeft: "auto",
-                    color: p.cupos <= 3 ? COLORS.warningText : COLORS.blue,
-                  }}>
+                <div key={p.id_programacion} className="px-gap-sm py-2.5 rounded-lg bg-surface-container-low font-body-sm text-body-sm text-on-surface flex gap-gap-sm items-center">
+                  <span className="material-symbols-outlined text-base text-secondary">calendar_month</span>
+                  <span>{p.fecha}</span>
+                  <span className="material-symbols-outlined text-base text-secondary">schedule</span>
+                  <span>{p.hora}</span>
+                  <span className={`font-semibold ml-auto ${p.cupos <= 3 ? "text-tertiary" : "text-secondary"}`}>
                     {p.cupos} cupos
                   </span>
                 </div>
@@ -119,7 +114,7 @@ function ProgramarCurso({ onToast }: ProgramarCursoProps) {
         )}
 
         {form.id_curso && programaciones.length === 0 && (
-          <p style={{ fontSize: 13, color: COLORS.textSecondary, background: COLORS.lightGray, padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>
+          <p className="font-body-sm text-body-sm text-on-surface-variant bg-surface-container-low px-gap-sm py-2.5 rounded-lg mb-gap-sm">
             Sin programaciones previas para este curso.
           </p>
         )}
@@ -137,7 +132,7 @@ function ProgramarCurso({ onToast }: ProgramarCursoProps) {
           </select>
         </Field>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
+        <div className="grid grid-cols-2 gap-x-gap-lg">
           <Field label="Fecha" required error={errors.fecha}>
             <input type="date" value={form.fecha}
               onChange={(e) => setForm({ ...form, fecha: e.target.value })}
@@ -156,12 +151,14 @@ function ProgramarCurso({ onToast }: ProgramarCursoProps) {
             style={inputStyle} />
         </Field>
 
-        <div style={{ borderTop: `1px solid ${COLORS.borderGray}`, paddingTop: 20, marginTop: 8 }}>
-          <button onClick={handleSubmit} disabled={loading} style={{
-            background: loading ? "#ccc" : COLORS.red, color: COLORS.white,
-            border: "none", borderRadius: 8, padding: "10px 28px",
-            fontSize: 14, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
-          }}>
+        <div className="border-t border-outline-variant/30 pt-gap-md mt-gap-xs">
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className={`px-gap-lg py-2.5 rounded-lg text-on-primary font-headline-sm text-headline-sm uppercase tracking-wider transition-colors ${
+              loading ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+            }`}
+          >
             {loading ? "Guardando..." : "Programar curso"}
           </button>
         </div>

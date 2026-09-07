@@ -3,7 +3,7 @@ import { apiFetch } from "../../api/client";
 import ConfirmModal from "../../components/UI/ConfirmModal";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_FACTURAS, API_METODOS_PAGO, API_PAGOS, API_USUARIOS, COLORS, inputStyle } from "../../constants/color";
+import { API_FACTURAS, API_METODOS_PAGO, API_PAGOS, API_USUARIOS, inputStyle } from "../../constants/color";
 import type { ApiResponse, EstadoFactura, FacturaResumen, MetodoPago, Pago, ToastType, UsuarioAdmin } from "../../types";
 
 interface FacturacionProps {
@@ -16,10 +16,10 @@ const ESTADO_LABEL: Record<EstadoFactura, string> = {
   pendiente: "Pendiente",
 };
 
-const ESTADO_COLOR: Record<EstadoFactura, { bg: string; text: string }> = {
-  pagada: { bg: COLORS.successBg, text: COLORS.successText },
-  parcial: { bg: COLORS.warningBg, text: COLORS.warningText },
-  pendiente: { bg: COLORS.errorBg, text: COLORS.errorText },
+const ESTADO_COLOR: Record<EstadoFactura, string> = {
+  pagada: "bg-green-50 text-green-700",
+  parcial: "bg-tertiary-fixed text-on-tertiary-fixed-variant",
+  pendiente: "bg-error-container text-on-error-container",
 };
 
 function Facturacion({ onToast }: FacturacionProps) {
@@ -244,6 +244,10 @@ function Facturacion({ onToast }: FacturacionProps) {
     }
   };
 
+  const botonFacturaDeshabilitado = guardandoFactura || !idEmpresa || !fecha;
+  const botonPagoDeshabilitado = guardandoPago || !idFacturaPago || !fechaPago || !montoPago || !idMetodo;
+  const botonMetodoDeshabilitado = guardandoMetodoNuevo || !nombreMetodoNuevo.trim();
+
   return (
     <div>
       <PageHeader
@@ -251,10 +255,10 @@ function Facturacion({ onToast }: FacturacionProps) {
         subtitle="Seguimiento del balance de las facturas ya emitidas en Facturatech, por empresa. Este apartado no genera ni reemplaza la facturación real — es un registro interno de montos y pagos."
       />
 
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20, flex: "1 1 360px", maxWidth: 440 }}>
-          <form onSubmit={crearFactura} style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Registrar factura de Facturatech</p>
+      <div className="flex gap-gap-lg flex-wrap items-start">
+        <div className="flex flex-col gap-gap-lg flex-1 min-w-[360px] max-w-lg">
+          <form onSubmit={crearFactura} className="bg-surface-container-lowest rounded-xl p-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Registrar factura de Facturatech</p>
             <Field label="Empresa" required>
               <select value={idEmpresa} onChange={(e) => setIdEmpresa(e.target.value)} style={{ ...inputStyle, appearance: "none" }} required>
                 <option value="">Seleccionar...</option>
@@ -275,17 +279,19 @@ function Facturacion({ onToast }: FacturacionProps) {
             <Field label="Valor">
               <input type="number" step="0.01" value={valor} onChange={(e) => setValor(e.target.value)} style={inputStyle} />
             </Field>
-            <button type="submit" disabled={guardandoFactura} style={{
-              background: guardandoFactura ? "#ccc" : COLORS.red, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600,
-              cursor: guardandoFactura ? "not-allowed" : "pointer",
-            }}>
+            <button
+              type="submit"
+              disabled={botonFacturaDeshabilitado}
+              className={`px-gap-md py-2 rounded-lg text-on-primary font-label-lg text-label-lg uppercase tracking-wider transition-colors ${
+                botonFacturaDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+              }`}
+            >
               {guardandoFactura ? "Guardando..." : "Registrar factura"}
             </button>
           </form>
 
-          <form onSubmit={registrarPago} style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Registrar pago recibido</p>
+          <form onSubmit={registrarPago} className="bg-surface-container-lowest rounded-xl p-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Registrar pago recibido</p>
             <Field label="Factura" required>
               <select value={idFacturaPago} onChange={(e) => setIdFacturaPago(e.target.value)} style={{ ...inputStyle, appearance: "none" }} required>
                 <option value="">Seleccionar...</option>
@@ -296,7 +302,7 @@ function Facturacion({ onToast }: FacturacionProps) {
                 ))}
               </select>
             </Field>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+            <div className="grid grid-cols-2 gap-x-gap-md">
               <Field label="Fecha" required>
                 <input type="date" value={fechaPago} onChange={(e) => setFechaPago(e.target.value)} style={inputStyle} required />
               </Field>
@@ -312,42 +318,35 @@ function Facturacion({ onToast }: FacturacionProps) {
                 ))}
               </select>
             </Field>
-            <button type="submit" disabled={guardandoPago} style={{
-              background: guardandoPago ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600,
-              cursor: guardandoPago ? "not-allowed" : "pointer",
-            }}>
+            <button
+              type="submit"
+              disabled={botonPagoDeshabilitado}
+              className={`px-gap-md py-2 rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider transition-colors ${
+                botonPagoDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-secondary hover:bg-on-secondary-fixed"
+              }`}
+            >
               {guardandoPago ? "Registrando..." : "Registrar pago"}
             </button>
           </form>
 
-          <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 6px 0" }}>Métodos de pago</p>
-            <p style={{ fontSize: 13, color: COLORS.textSecondary, margin: "0 0 14px 0" }}>
+          <div className="bg-surface-container-lowest rounded-xl p-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-2xs">Métodos de pago</p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant mb-gap-md">
               Catálogo de métodos disponibles al registrar un pago (efectivo, transferencia, tarjeta, etc.).
             </p>
 
             {metodosPago.length === 0 ? (
-              <p style={{ fontSize: 13, color: COLORS.textSecondary, margin: "0 0 14px 0" }}>Aún no hay métodos de pago registrados.</p>
+              <p className="font-body-sm text-body-sm text-on-surface-variant mb-gap-md">Aún no hay métodos de pago registrados.</p>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+              <div className="flex flex-col gap-1.5 mb-gap-md">
                 {metodosPago.map((m) => (
-                  <div key={m.id_metodo} style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-                    background: COLORS.lightGray, borderRadius: 8, padding: "8px 12px", fontSize: 13,
-                  }}>
-                    <span>{m.nombre}</span>
-                    <span style={{ flexShrink: 0 }}>
-                      <button onClick={() => abrirEdicionMetodo(m)} style={{
-                        background: "none", color: COLORS.blue, border: "none",
-                        fontSize: 12, fontWeight: 600, cursor: "pointer", padding: "2px 6px",
-                      }}>
+                  <div key={m.id_metodo} className="flex items-center justify-between gap-gap-sm bg-surface-container-low rounded-lg px-gap-sm py-2 font-body-sm text-body-sm">
+                    <span className="normal-case">{m.nombre}</span>
+                    <span className="shrink-0">
+                      <button onClick={() => abrirEdicionMetodo(m)} className="bg-transparent border-none text-secondary cursor-pointer font-body-sm text-body-sm px-1.5">
                         Editar
                       </button>
-                      <button onClick={() => setMetodoAEliminar(m)} style={{
-                        background: "none", color: COLORS.red, border: "none",
-                        fontSize: 12, fontWeight: 600, cursor: "pointer", padding: "2px 6px",
-                      }}>
+                      <button onClick={() => setMetodoAEliminar(m)} className="bg-transparent border-none text-error cursor-pointer font-body-sm text-body-sm px-1.5">
                         Eliminar
                       </button>
                     </span>
@@ -356,7 +355,7 @@ function Facturacion({ onToast }: FacturacionProps) {
               </div>
             )}
 
-            <form onSubmit={crearMetodo} style={{ display: "flex", gap: 8 }}>
+            <form onSubmit={crearMetodo} className="flex gap-gap-xs">
               <input
                 value={nombreMetodoNuevo}
                 onChange={(e) => setNombreMetodoNuevo(e.target.value)}
@@ -364,111 +363,102 @@ function Facturacion({ onToast }: FacturacionProps) {
                 style={{ ...inputStyle, flex: 1 }}
                 required
               />
-              <button type="submit" disabled={guardandoMetodoNuevo} style={{
-                background: guardandoMetodoNuevo ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
-                borderRadius: 8, padding: "0 16px", fontSize: 13, fontWeight: 600,
-                cursor: guardandoMetodoNuevo ? "not-allowed" : "pointer", flexShrink: 0,
-              }}>
+              <button
+                type="submit"
+                disabled={botonMetodoDeshabilitado}
+                className={`px-gap-sm rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider shrink-0 transition-colors ${
+                  botonMetodoDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-secondary hover:bg-on-secondary-fixed"
+                }`}
+              >
                 {guardandoMetodoNuevo ? "Agregando..." : "Agregar"}
               </button>
             </form>
           </div>
         </div>
 
-        <div style={{ flex: "1 1 380px" }}>
-          <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, overflow: "hidden" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: 0, padding: "16px 20px", borderBottom: `1px solid ${COLORS.borderGray}` }}>
+        <div className="flex-1 min-w-[380px]">
+          <div className="bg-surface-container-lowest rounded-xl overflow-hidden">
+            <p className="font-headline-sm text-headline-sm text-on-surface m-0 px-gap-md py-gap-sm border-b border-outline-variant/30">
               Balance por factura ({facturas.length})
             </p>
             {facturas.length === 0 ? (
-              <p style={{ color: COLORS.textSecondary, fontSize: 14, padding: 24, margin: 0 }}>
+              <p className="font-body-sm text-body-sm text-on-surface-variant p-gap-lg m-0">
                 Aún no hay facturas registradas. Regístralas aquí a medida que se emitan en Facturatech para llevar el balance.
               </p>
             ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr style={{ background: COLORS.lightGray, textAlign: "left" }}>
-                    <th style={{ padding: "10px 14px" }}>N° Facturatech</th>
-                    <th style={{ padding: "10px 14px" }}>Empresa</th>
-                    <th style={{ padding: "10px 14px" }}>Fecha</th>
-                    <th style={{ padding: "10px 14px" }}>Total</th>
-                    <th style={{ padding: "10px 14px" }}>Saldo</th>
-                    <th style={{ padding: "10px 14px" }}>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {facturas.map((f) => (
-                    <tr key={f.id_factura} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
-                      <td style={{ padding: "10px 14px" }}>{f.numero_factura_externa || `#${f.id_factura}`}</td>
-                      <td style={{ padding: "10px 14px" }}>{f.empresa}</td>
-                      <td style={{ padding: "10px 14px" }}>{f.fecha}</td>
-                      <td style={{ padding: "10px 14px", fontWeight: 700, color: COLORS.blue }}>${f.total}</td>
-                      <td style={{ padding: "10px 14px" }}>${f.saldo_pendiente}</td>
-                      <td style={{ padding: "10px 14px" }}>
-                        <span style={{
-                          fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 999,
-                          background: ESTADO_COLOR[f.estado].bg, color: ESTADO_COLOR[f.estado].text,
-                        }}>
-                          {ESTADO_LABEL[f.estado]}
-                        </span>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse font-body-sm text-body-sm">
+                  <thead>
+                    <tr className="bg-surface-container-low text-left">
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">N° Facturatech</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Empresa</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Fecha</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Total</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Saldo</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Estado</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {facturas.map((f) => (
+                      <tr key={f.id_factura} className="border-t border-outline-variant/20">
+                        <td className="px-gap-sm py-gap-xs">{f.numero_factura_externa || `#${f.id_factura}`}</td>
+                        <td className="px-gap-sm py-gap-xs">{f.empresa}</td>
+                        <td className="px-gap-sm py-gap-xs">{f.fecha}</td>
+                        <td className="px-gap-sm py-gap-xs font-bold text-secondary">${f.total}</td>
+                        <td className="px-gap-sm py-gap-xs">${f.saldo_pendiente}</td>
+                        <td className="px-gap-sm py-gap-xs">
+                          <span className={`font-label-sm text-label-sm font-bold px-gap-xs py-0.5 rounded-full ${ESTADO_COLOR[f.estado]}`}>
+                            {ESTADO_LABEL[f.estado]}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
 
-          <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, overflow: "hidden", marginTop: 20 }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: 0, padding: "16px 20px", borderBottom: `1px solid ${COLORS.borderGray}` }}>
+          <div className="bg-surface-container-lowest rounded-xl overflow-hidden mt-gap-lg">
+            <p className="font-headline-sm text-headline-sm text-on-surface m-0 px-gap-md py-gap-sm border-b border-outline-variant/30">
               Pagos registrados ({pagos.length})
             </p>
             {pagos.length === 0 ? (
-              <p style={{ color: COLORS.textSecondary, fontSize: 14, padding: 24, margin: 0 }}>
+              <p className="font-body-sm text-body-sm text-on-surface-variant p-gap-lg m-0">
                 Aún no se ha registrado ningún pago.
               </p>
             ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr style={{ background: COLORS.lightGray, textAlign: "left" }}>
-                    <th style={{ padding: "10px 14px" }}>Factura</th>
-                    <th style={{ padding: "10px 14px" }}>Fecha</th>
-                    <th style={{ padding: "10px 14px" }}>Monto</th>
-                    <th style={{ padding: "10px 14px" }}>Método de pago</th>
-                    <th style={{ padding: "10px 14px" }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pagos.map((p) => (
-                    <tr key={p.id_pago} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
-                      <td style={{ padding: "10px 14px" }}>{etiquetaFactura(p.id_factura)}</td>
-                      <td style={{ padding: "10px 14px" }}>{p.fecha}</td>
-                      <td style={{ padding: "10px 14px", fontWeight: 700, color: COLORS.blue }}>${p.monto}</td>
-                      <td style={{ padding: "10px 14px" }}>{p.metodo_pago || "—"}</td>
-                      <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
-                        <button
-                          onClick={() => abrirEdicionPago(p)}
-                          style={{
-                            background: "none", color: COLORS.blue, border: "none",
-                            fontSize: 12, fontWeight: 600, cursor: "pointer", padding: "4px 6px",
-                          }}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() => setPagoAEliminar(p)}
-                          style={{
-                            background: "none", color: COLORS.red, border: "none",
-                            fontSize: 12, fontWeight: 600, cursor: "pointer", padding: "4px 6px",
-                          }}
-                        >
-                          Eliminar
-                        </button>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse font-body-sm text-body-sm">
+                  <thead>
+                    <tr className="bg-surface-container-low text-left">
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Factura</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Fecha</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Monto</th>
+                      <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Método de pago</th>
+                      <th className="px-gap-sm py-gap-xs"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {pagos.map((p) => (
+                      <tr key={p.id_pago} className="border-t border-outline-variant/20">
+                        <td className="px-gap-sm py-gap-xs">{etiquetaFactura(p.id_factura)}</td>
+                        <td className="px-gap-sm py-gap-xs">{p.fecha}</td>
+                        <td className="px-gap-sm py-gap-xs font-bold text-secondary">${p.monto}</td>
+                        <td className="px-gap-sm py-gap-xs">{p.metodo_pago || "—"}</td>
+                        <td className="px-gap-sm py-gap-xs whitespace-nowrap">
+                          <button onClick={() => abrirEdicionPago(p)} className="bg-transparent border-none text-secondary cursor-pointer font-body-sm text-body-sm px-1.5">
+                            Editar
+                          </button>
+                          <button onClick={() => setPagoAEliminar(p)} className="bg-transparent border-none text-error cursor-pointer font-body-sm text-body-sm px-1.5">
+                            Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
@@ -477,14 +467,14 @@ function Facturacion({ onToast }: FacturacionProps) {
       {pagoEditando && (
         <div
           onClick={() => setPagoEditando(null)}
-          style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
+          className="fixed inset-0 z-[1100] bg-on-background/50 flex items-center justify-center p-margin-mobile"
         >
           <form
             onClick={(e) => e.stopPropagation()}
             onSubmit={guardarEdicionPago}
-            style={{ background: COLORS.white, borderRadius: 12, padding: "24px 28px", width: "100%", maxWidth: 380 }}
+            className="bg-surface-container-lowest rounded-xl p-gap-lg w-full max-w-sm"
           >
-            <p style={{ fontWeight: 700, fontSize: 15, margin: "0 0 14px 0" }}>
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">
               Editar pago de {etiquetaFactura(pagoEditando.id_factura)}
             </p>
             <Field label="Monto" required>
@@ -497,18 +487,21 @@ function Facturacion({ onToast }: FacturacionProps) {
                 ))}
               </select>
             </Field>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
-              <button type="button" onClick={() => setPagoEditando(null)} style={{
-                background: COLORS.lightGray, border: `1px solid ${COLORS.borderGray}`, borderRadius: 8,
-                padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", color: COLORS.textPrimary,
-              }}>
+            <div className="flex justify-end gap-gap-xs mt-gap-xs">
+              <button
+                type="button"
+                onClick={() => setPagoEditando(null)}
+                className="px-gap-sm py-2 rounded-lg bg-surface-container-high text-on-surface font-label-lg text-label-lg uppercase tracking-wider"
+              >
                 Cancelar
               </button>
-              <button type="submit" disabled={guardandoEdicion} style={{
-                background: guardandoEdicion ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
-                borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 600,
-                cursor: guardandoEdicion ? "not-allowed" : "pointer",
-              }}>
+              <button
+                type="submit"
+                disabled={guardandoEdicion}
+                className={`px-gap-sm py-2 rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider ${
+                  guardandoEdicion ? "bg-outline-variant cursor-not-allowed" : "bg-secondary hover:bg-on-secondary-fixed"
+                }`}
+              >
                 {guardandoEdicion ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
@@ -528,29 +521,32 @@ function Facturacion({ onToast }: FacturacionProps) {
       {metodoEditando && (
         <div
           onClick={() => setMetodoEditando(null)}
-          style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
+          className="fixed inset-0 z-[1100] bg-on-background/50 flex items-center justify-center p-margin-mobile"
         >
           <form
             onClick={(e) => e.stopPropagation()}
             onSubmit={guardarEdicionMetodo}
-            style={{ background: COLORS.white, borderRadius: 12, padding: "24px 28px", width: "100%", maxWidth: 380 }}
+            className="bg-surface-container-lowest rounded-xl p-gap-lg w-full max-w-sm"
           >
-            <p style={{ fontWeight: 700, fontSize: 15, margin: "0 0 14px 0" }}>Editar método de pago</p>
+            <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Editar método de pago</p>
             <Field label="Nombre" required>
               <input value={nombreMetodoEdicion} onChange={(e) => setNombreMetodoEdicion(e.target.value)} style={inputStyle} required />
             </Field>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
-              <button type="button" onClick={() => setMetodoEditando(null)} style={{
-                background: COLORS.lightGray, border: `1px solid ${COLORS.borderGray}`, borderRadius: 8,
-                padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", color: COLORS.textPrimary,
-              }}>
+            <div className="flex justify-end gap-gap-xs mt-gap-xs">
+              <button
+                type="button"
+                onClick={() => setMetodoEditando(null)}
+                className="px-gap-sm py-2 rounded-lg bg-surface-container-high text-on-surface font-label-lg text-label-lg uppercase tracking-wider"
+              >
                 Cancelar
               </button>
-              <button type="submit" disabled={guardandoMetodoEdicion} style={{
-                background: guardandoMetodoEdicion ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
-                borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 600,
-                cursor: guardandoMetodoEdicion ? "not-allowed" : "pointer",
-              }}>
+              <button
+                type="submit"
+                disabled={guardandoMetodoEdicion}
+                className={`px-gap-sm py-2 rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider ${
+                  guardandoMetodoEdicion ? "bg-outline-variant cursor-not-allowed" : "bg-secondary hover:bg-on-secondary-fixed"
+                }`}
+              >
                 {guardandoMetodoEdicion ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
