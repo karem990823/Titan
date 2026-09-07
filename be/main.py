@@ -24,6 +24,7 @@ from App.Modulo_Cursos.routes import (
     resultado_routes,
     rol_routes,
     salud_routes,
+    solicitud_contacto_routes,
     tipo_accidente_routes,
     tipo_identificacion_routes,
     usuario_routes
@@ -98,6 +99,7 @@ app.include_router(accidente_routes.router)
 app.include_router(tipo_accidente_routes.router)
 app.include_router(reporte_routes.router)
 app.include_router(dashboard_routes.router)
+app.include_router(solicitud_contacto_routes.router)
 
 # 5. Ruta de bienvenida (opcional)
 @app.get("/")

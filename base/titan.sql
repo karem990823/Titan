@@ -269,3 +269,15 @@ CREATE TABLE consolidado_participantes(
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
     FOREIGN KEY (id_curso) REFERENCES cursos(id_curso)
 );
+CREATE TABLE solicitudes_contacto(
+    id_solicitud INT PRIMARY KEY AUTO_INCREMENT,
+    nombre_contacto VARCHAR(150),
+    empresa VARCHAR(150),
+    correo VARCHAR(150),
+    telefono VARCHAR(30),
+    tipo_servicio VARCHAR(150),
+    numero_personal INT,
+    detalle TEXT,
+    atendida BOOLEAN DEFAULT FALSE,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+);

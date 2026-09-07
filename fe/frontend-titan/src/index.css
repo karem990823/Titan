@@ -1,111 +1,162 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import "tailwindcss";
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+/* Paleta y escala tipográfica del landing page de TITAN-ES (Material Design 3),
+   traducida 1:1 desde el config de Tailwind con el que se diseñó, para que el
+   resto del sistema pueda reusar exactamente los mismos tokens. */
+@theme {
+  --color-on-secondary: #ffffff;
+  --color-surface-bright: #f8f9ff;
+  --color-primary-fixed-dim: #ffb4ab;
+  --color-surface-variant: #d5e3fd;
+  --color-on-background: #0d1c2f;
+  --color-primary-fixed: #ffdad6;
+  --color-surface-container: #e6eeff;
+  --color-surface-dim: #ccdbf4;
+  --color-primary-container: #b91c1c;
+  --color-on-primary-fixed-variant: #93000b;
+  --color-secondary-fixed-dim: #afc8ed;
+  --color-surface-container-lowest: #ffffff;
+  --color-secondary-container: #c0d9fe;
+  --color-surface-container-high: #dde9ff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-tint: #b91c1c;
+  --color-on-error-container: #93000a;
+  --color-primary: #93000b;
+  --color-secondary-fixed: #d2e4ff;
+  --color-inverse-primary: #ffb4ab;
+  --color-on-tertiary-fixed: #2f1500;
+  --color-on-tertiary-container: #ffcfab;
+  --color-surface: #f8f9ff;
+  --color-on-surface-variant: #5b403d;
+  --color-on-primary: #ffffff;
+  --color-on-surface: #0d1c2f;
+  --color-surface-container-highest: #d5e3fd;
+  --color-error-container: #ffdad6;
+  --color-on-secondary-container: #465f7f;
+  --color-on-tertiary-fixed-variant: #6e3900;
+  --color-outline: #8f6f6c;
+  --color-background: #f8f9ff;
+  --color-on-primary-container: #ffcdc7;
+  --color-secondary: #476080;
+  --color-outline-variant: #e4beb9;
+  --color-inverse-surface: #233144;
+  --color-tertiary-container: #904d00;
+  --color-on-secondary-fixed-variant: #2f4867;
+  --color-tertiary: #6e3900;
+  --color-on-tertiary: #ffffff;
+  --color-error: #ba1a1a;
+  --color-on-secondary-fixed: #001c38;
+  --color-tertiary-fixed: #ffdcc3;
+  --color-on-primary-fixed: #410002;
+  --color-inverse-on-surface: #ebf1ff;
+  --color-tertiary-fixed-dim: #ffb77d;
+  --color-on-error: #ffffff;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --radius-DEFAULT: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-full: 0.75rem;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+  --spacing-gap-2xs: 0.25rem;
+  --spacing-gap-sm: 0.75rem;
+  --spacing-gap-lg: 1.5rem;
+  --spacing-margin-tablet: 2rem;
+  --spacing-gap-3xl: 4.5rem;
+  --spacing-margin-mobile: 1.25rem;
+  --spacing-gap-xl: 2rem;
+  --spacing-gap-2xl: 3rem;
+  --spacing-gap-xs: 0.5rem;
+  --spacing-gap-md: 1rem;
+  --spacing-max-container: 80rem;
+  --spacing-margin-desktop: 3rem;
+
+  --font-body-md: Inter, system-ui, sans-serif;
+  --font-headline-sm: Oswald, system-ui, sans-serif;
+  --font-body-lg: Inter, system-ui, sans-serif;
+  --font-label-lg: Inter, system-ui, sans-serif;
+  --font-body-sm: Inter, system-ui, sans-serif;
+  --font-headline-lg: Oswald, system-ui, sans-serif;
+  --font-label-sm: Inter, system-ui, sans-serif;
+  --font-headline-md: Oswald, system-ui, sans-serif;
+  --font-label-md: Inter, system-ui, sans-serif;
+  --font-display-hero: Oswald, system-ui, sans-serif;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--font-weight: 400;
+
+  --text-headline-sm: 22px;
+  --text-headline-sm--line-height: 28px;
+  --text-headline-sm--letter-spacing: 0.02em;
+  --text-headline-sm--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
+
+  --text-label-lg: 14px;
+  --text-label-lg--line-height: 20px;
+  --text-label-lg--letter-spacing: 0.04em;
+  --text-label-lg--font-weight: 600;
+
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--font-weight: 400;
+
+  --text-headline-lg: 40px;
+  --text-headline-lg--line-height: 48px;
+  --text-headline-lg--letter-spacing: 0.01em;
+  --text-headline-lg--font-weight: 700;
+
+  --text-label-sm: 10px;
+  --text-label-sm--line-height: 14px;
+  --text-label-sm--letter-spacing: 0.08em;
+  --text-label-sm--font-weight: 700;
+
+  --text-headline-md: 28px;
+  --text-headline-md--line-height: 36px;
+  --text-headline-md--letter-spacing: 0.01em;
+  --text-headline-md--font-weight: 600;
+
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.05em;
+  --text-label-md--font-weight: 600;
+
+  --text-display-hero: 56px;
+  --text-display-hero--line-height: 64px;
+  --text-display-hero--letter-spacing: 0.02em;
+  --text-display-hero--font-weight: 700;
+}
+
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    overscroll-behavior: none;
+    font-family: var(--font-body-md);
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+::-webkit-scrollbar {
+  display: none;
 }
 
-body {
-  margin: 0;
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
   font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
 }

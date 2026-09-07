@@ -11,10 +11,15 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-    # Sin "ports": nadie fuera de la red "titan_internal" puede alcanzar MySQL, ni
-    # siquiera el host. El backend lo resuelve por nombre de servicio ("db") dentro de
-    # esa red. Si necesitas conectarte con un cliente SQL desde tu máquina para depurar,
-    # usa "docker compose exec db mysql -u root -p" en vez de exponer el puerto.
+    # Puerto publicado solo para poder inspeccionar la base desde un cliente como
+    # MySQL Workbench en localhost:3306 durante desarrollo/sustentación. Docker no
+    # publica puertos hacia el host desde una red con "internal: true" (bloquea
+    # también la entrada, no solo la salida a Internet) — por eso "db" además de
+    # "titan_internal" se une a "titan_debug", una red sin ese aislamiento que
+    # ningún otro servicio usa. "fe" nunca se une a "titan_debug", así que sigue
+    # sin poder alcanzar "db" por la red de Docker.
+    ports:
+      - "3306:3306"
     volumes:
       - titan_db_data:/var/lib/mysql
       - ./base/titan.sql:/docker-entrypoint-initdb.d/1-titan.sql:ro
@@ -31,6 +36,7 @@ services:
       - no-new-privileges:true
     networks:
       - titan_internal
+      - titan_debug   # solo para publicar 3306 al host; ningún otro servicio la usa
 
   be:
     build:
@@ -83,6 +89,10 @@ networks:
   # Red pública: "be" y "fe", con salida normal (necesaria para publicar sus puertos
   # al host y, en el caso de "be", para futuras integraciones externas).
   titan_public:
+    driver: bridge
+  # Solo para que "db" publique 3306 hacia el host (MySQL Workbench). "fe" no se
+  # une a esta red, así que seguir sin poder alcanzar "db" por la red de Docker.
+  titan_debug:
     driver: bridge
 
 volumes:

@@ -47,6 +47,7 @@ Requiere Docker Desktop corriendo. Es la única vía soportada para correr el si
 Al terminar:
 - Frontend: http://localhost:5173
 - API: http://localhost:8000 · Swagger: http://localhost:8000/docs
+- MySQL: `localhost:3306` (usuario `DB_USER`/contraseña `DB_PASSWORD` de tu `.env`, esquema `DB_NAME`) — para inspeccionarla con MySQL Workbench o cualquier cliente SQL
 
 Credenciales de prueba (semilla en `base/inserts.sql`):
 

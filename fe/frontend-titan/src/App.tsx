@@ -12,6 +12,7 @@ import Header from "./components/Layout/Header";
 import RequireRole from "./components/Layout/RequireRole";
 
 // Público y autenticación
+import LandingPage from "./features/publico/LandingPage";
 import ConsultaCertificado from "./features/publico/ConsultaCertificado";
 import LoginPage from "./features/auth/LoginPage";
 
@@ -67,7 +68,8 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<ConsultaCertificado />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/certificados" element={<ConsultaCertificado />} />
         <Route path="/login" element={<LoginPage />} />
 
         <Route element={<AuthenticatedShell />}>
