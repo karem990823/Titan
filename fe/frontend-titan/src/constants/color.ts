@@ -47,13 +47,14 @@ export const COLORS = {
 
 export const inputStyle: CSSProperties = {
   width: "100%",
-  padding: "9px 12px",
+  padding: "10px 14px",
   fontSize: 14,
-  border: `1px solid ${COLORS.borderGray}`,
+  border: "none",
   borderRadius: 8,
-  background: COLORS.white,
-  color: COLORS.textPrimary,
+  background: "#eff4ff",
+  color: "#0d1c2f",
   outline: "none",
   boxSizing: "border-box",
   fontFamily: "inherit",
+  transition: "background-color 0.15s ease",
 };

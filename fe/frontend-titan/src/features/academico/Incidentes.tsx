@@ -8,7 +8,6 @@ import {
   API_INSCRIPCIONES,
   API_TIPOS_ACCIDENTE,
   API_TIPOS_IDENTIFICACION,
-  COLORS,
   inputStyle,
 } from "../../constants/color";
 import type { Accidente, ApiResponse, Participante, TipoDocumento, TipoAccidente, ToastType } from "../../types";
@@ -143,22 +142,25 @@ function Incidentes({ onToast }: IncidentesProps) {
     en_seguimiento: "En seguimiento",
     cerrado: "Cerrado",
   };
-  const ESTADO_COLOR: Record<string, { bg: string; text: string }> = {
-    abierto: { bg: COLORS.warningBg, text: COLORS.warningText },
-    en_seguimiento: { bg: "#E6F1FB", text: "#185FA5" },
-    cerrado: { bg: COLORS.successBg, text: COLORS.successText },
+  const ESTADO_COLOR: Record<string, string> = {
+    abierto: "bg-tertiary-fixed text-on-tertiary-fixed-variant",
+    en_seguimiento: "bg-secondary-container text-on-secondary-container",
+    cerrado: "bg-green-50 text-green-700",
   };
+
+  const botonBuscarDeshabilitado = buscando || !idTipo || !numero;
+  const botonRegistrarDeshabilitado = guardando || !trabajador || !fecha || !lugar.trim() || !idTipoAccidente;
 
   return (
     <div>
       <PageHeader title="Incidentes de seguridad" subtitle="Registra y consulta la bitácora de accidentes de los trabajadores." />
 
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <form onSubmit={registrarIncidente} style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px", flex: "1 1 360px", maxWidth: 440 }}>
-          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0", borderBottom: `1px solid ${COLORS.borderGray}`, paddingBottom: 10 }}>
+      <div className="flex gap-gap-lg flex-wrap items-start">
+        <form onSubmit={registrarIncidente} className="bg-surface-container-lowest rounded-xl p-gap-lg flex-1 min-w-[360px] max-w-xl">
+          <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm pb-gap-xs border-b border-outline-variant/30">
             1. Buscar trabajador
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <div className="grid grid-cols-2 gap-x-gap-md">
             <Field label="Tipo de documento" required>
               <select value={idTipo} onChange={(e) => setIdTipo(e.target.value)} style={{ ...inputStyle, appearance: "none" }}>
                 <option value="">Seleccionar...</option>
@@ -171,25 +173,28 @@ function Incidentes({ onToast }: IncidentesProps) {
               <input type="number" value={numero} onChange={(e) => setNumero(e.target.value)} style={inputStyle} />
             </Field>
           </div>
-          <button type="button" onClick={buscarTrabajador} disabled={buscando} style={{
-            background: COLORS.blue, color: COLORS.white, border: "none", borderRadius: 8,
-            padding: "8px 20px", fontSize: 13, fontWeight: 600,
-            cursor: buscando ? "not-allowed" : "pointer", marginBottom: 16,
-          }}>
+          <button
+            type="button"
+            onClick={buscarTrabajador}
+            disabled={botonBuscarDeshabilitado}
+            className={`px-gap-md py-2 rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider mb-gap-md transition-colors ${
+              botonBuscarDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-secondary hover:bg-on-secondary-fixed"
+            }`}
+          >
             {buscando ? "Buscando..." : "Buscar trabajador"}
           </button>
 
           {trabajador && (
-            <div style={{ background: COLORS.successBg, border: "1px solid #C0DD97", borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
-              <p style={{ fontWeight: 700, color: COLORS.successText, margin: 0, fontSize: 14 }}>{trabajador.nombre}</p>
-              <p style={{ color: "#3B6D11", margin: 0, fontSize: 12 }}>{trabajador.tipo_documento} · {trabajador.numero_identificacion}</p>
+            <div className="bg-green-50 border border-green-200 rounded-lg px-gap-sm py-gap-xs mb-gap-lg">
+              <p className="font-headline-sm text-headline-sm text-green-800 m-0 normal-case">{trabajador.nombre}</p>
+              <p className="font-body-sm text-body-sm text-green-700 m-0">{trabajador.tipo_documento} · {trabajador.numero_identificacion}</p>
             </div>
           )}
 
-          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0", borderBottom: `1px solid ${COLORS.borderGray}`, paddingBottom: 10 }}>
+          <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm pb-gap-xs border-b border-outline-variant/30">
             2. Detalle del incidente
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <div className="grid grid-cols-2 gap-x-gap-md">
             <Field label="Fecha" required>
               <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} required />
             </Field>
@@ -209,62 +214,60 @@ function Incidentes({ onToast }: IncidentesProps) {
             <input value={descripcion} onChange={(e) => setDescripcion(e.target.value)} style={inputStyle} />
           </Field>
 
-          <button type="submit" disabled={guardando || !trabajador} style={{
-            background: guardando || !trabajador ? "#ccc" : COLORS.red, color: COLORS.white, border: "none",
-            borderRadius: 8, padding: "10px 28px", fontSize: 14, fontWeight: 600,
-            cursor: guardando || !trabajador ? "not-allowed" : "pointer",
-          }}>
+          <button
+            type="submit"
+            disabled={botonRegistrarDeshabilitado}
+            className={`px-gap-lg py-2.5 rounded-lg text-on-primary font-headline-sm text-headline-sm uppercase tracking-wider transition-colors ${
+              botonRegistrarDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+            }`}
+          >
             {guardando ? "Guardando..." : "Registrar incidente"}
           </button>
         </form>
 
-        <div style={{ flex: "1 1 400px", background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, overflow: "hidden" }}>
-          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: 0, padding: "16px 20px", borderBottom: `1px solid ${COLORS.borderGray}` }}>
+        <div className="flex-1 min-w-[400px] bg-surface-container-lowest rounded-xl overflow-hidden">
+          <p className="font-headline-sm text-headline-sm text-on-surface m-0 px-gap-md py-gap-sm border-b border-outline-variant/30">
             Incidentes recientes ({incidentes.length})
           </p>
           {incidentes.length === 0 ? (
-            <p style={{ color: COLORS.textSecondary, fontSize: 14, padding: 24, margin: 0 }}>Aún no hay incidentes registrados.</p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant p-gap-lg m-0">Aún no hay incidentes registrados.</p>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-              <thead>
-                <tr style={{ background: COLORS.lightGray, textAlign: "left" }}>
-                  <th style={{ padding: "10px 16px" }}>Trabajador</th>
-                  <th style={{ padding: "10px 16px" }}>Tipo</th>
-                  <th style={{ padding: "10px 16px" }}>Fecha</th>
-                  <th style={{ padding: "10px 16px" }}>Estado</th>
-                  <th style={{ padding: "10px 16px" }}>Evidencia</th>
-                </tr>
-              </thead>
-              <tbody>
-                {incidentes.map((a) => {
-                  const colores = ESTADO_COLOR[a.estado] ?? ESTADO_COLOR.abierto;
-                  return (
-                    <tr key={a.id_accidente} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
-                      <td style={{ padding: "10px 16px" }}>{a.trabajador ?? `#${a.id_trabajador}`}</td>
-                      <td style={{ padding: "10px 16px" }}>{a.tipo_accidente ?? `#${a.id_tipo_accidente}`}</td>
-                      <td style={{ padding: "10px 16px" }}>{a.fecha}</td>
-                      <td style={{ padding: "10px 16px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{
-                            fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 999,
-                            background: colores.bg, color: colores.text,
-                          }}>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse font-body-sm text-body-sm">
+                <thead>
+                  <tr className="bg-surface-container-low text-left">
+                    <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Trabajador</th>
+                    <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Tipo</th>
+                    <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Fecha</th>
+                    <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Estado</th>
+                    <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Evidencia</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {incidentes.map((a) => (
+                    <tr key={a.id_accidente} className="border-t border-outline-variant/20">
+                      <td className="px-gap-sm py-gap-xs">{a.trabajador ?? `#${a.id_trabajador}`}</td>
+                      <td className="px-gap-sm py-gap-xs">{a.tipo_accidente ?? `#${a.id_tipo_accidente}`}</td>
+                      <td className="px-gap-sm py-gap-xs">{a.fecha}</td>
+                      <td className="px-gap-sm py-gap-xs">
+                        <div className="flex items-center gap-gap-2xs">
+                          <span className={`font-label-sm text-label-sm font-bold px-gap-xs py-0.5 rounded-full ${ESTADO_COLOR[a.estado] ?? ESTADO_COLOR.abierto}`}>
                             {ESTADO_LABEL[a.estado] ?? a.estado}
                           </span>
                           {a.estado !== "cerrado" && (
-                            <button onClick={() => avanzarEstado(a)} style={{ background: "none", border: "none", color: COLORS.blue, cursor: "pointer", fontSize: 12 }}>
+                            <button onClick={() => avanzarEstado(a)} className="bg-transparent border-none text-secondary cursor-pointer font-body-sm text-body-sm">
                               {a.estado === "abierto" ? "Iniciar seguimiento" : "Cerrar"}
                             </button>
                           )}
                         </div>
                       </td>
-                      <td style={{ padding: "10px 16px" }}>
-                        <label style={{ fontSize: 12, color: COLORS.blue, cursor: "pointer" }}>
+                      <td className="px-gap-sm py-gap-xs">
+                        <label className="font-body-sm text-body-sm text-secondary cursor-pointer">
                           {conEvidencia.has(a.id_accidente) ? "✔ adjuntada" : "Adjuntar"}
                           <input
                             type="file"
                             accept=".pdf,.jpg,.jpeg,.png"
-                            style={{ display: "none" }}
+                            className="hidden"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) subirEvidencia(a.id_accidente, file);
@@ -274,10 +277,10 @@ function Incidentes({ onToast }: IncidentesProps) {
                         </label>
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

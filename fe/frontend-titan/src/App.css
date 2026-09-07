@@ -14,6 +14,6 @@ input, select {
   transition: border-color 0.2s;
 }
 
-input:focus, select:focus {
-  border-color: #C0161C !important;
+input:focus, select:focus, textarea:focus {
+  background-color: #dde9ff !important;
 }

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { apiFetch } from "../../api/client";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_CURSOS, API_EVALUACIONES, COLORS, inputStyle } from "../../constants/color";
+import { API_CURSOS, API_EVALUACIONES, inputStyle } from "../../constants/color";
 import type { ApiResponse, Curso, EvaluacionResumen, ToastType } from "../../types";
 
 interface EvaluacionesProps {
@@ -52,13 +52,15 @@ function Evaluaciones({ onToast }: EvaluacionesProps) {
     }
   };
 
+  const botonDeshabilitado = loading || !nombre.trim() || !idCurso;
+
   return (
     <div>
       <PageHeader title="Evaluaciones" subtitle="Crea evaluaciones teóricas y gestiona sus preguntas y respuestas." />
 
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <form onSubmit={crear} style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px", flex: "0 0 320px" }}>
-          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Nueva evaluación</p>
+      <div className="flex gap-gap-lg flex-wrap items-start">
+        <form onSubmit={crear} className="bg-surface-container-lowest rounded-xl p-gap-lg flex-none w-[320px]">
+          <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Nueva evaluación</p>
           <Field label="Nombre" required>
             <input value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} required />
           </Field>
@@ -70,34 +72,32 @@ function Evaluaciones({ onToast }: EvaluacionesProps) {
               ))}
             </select>
           </Field>
-          <button type="submit" disabled={loading} style={{
-            background: loading ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
-            borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600,
-            cursor: loading ? "not-allowed" : "pointer",
-          }}>
+          <button
+            type="submit"
+            disabled={botonDeshabilitado}
+            className={`px-gap-md py-2 rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider transition-colors ${
+              botonDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-secondary hover:bg-on-secondary-fixed"
+            }`}
+          >
             {loading ? "Creando..." : "Crear evaluación"}
           </button>
         </form>
 
-        <div style={{ flex: "1 1 340px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="flex-1 min-w-[340px] flex flex-col gap-gap-xs">
           {evaluaciones.length === 0 && (
-            <p style={{ color: COLORS.textSecondary, fontSize: 13 }}>Aún no hay evaluaciones creadas.</p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant">Aún no hay evaluaciones creadas.</p>
           )}
           {evaluaciones.map((ev) => (
             <Link
               key={ev.id_evaluacion}
               to={`/academico/evaluaciones/${ev.id_evaluacion}`}
-              style={{
-                background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 10,
-                padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center",
-                textDecoration: "none", color: COLORS.textPrimary,
-              }}
+              className="bg-surface-container-lowest rounded-lg px-gap-md py-gap-sm flex justify-between items-center no-underline text-on-surface hover:shadow-md transition-shadow"
             >
-              <span style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontWeight: 600, fontSize: 14 }}>{ev.nombre}</span>
-                <span style={{ fontSize: 12, color: COLORS.textSecondary }}>{ev.curso_nombre ?? "Curso no asignado"}</span>
+              <span className="flex flex-col">
+                <span className="font-label-lg text-label-lg text-on-surface normal-case">{ev.nombre}</span>
+                <span className="font-body-sm text-body-sm text-on-surface-variant">{ev.curso_nombre ?? "Curso no asignado"}</span>
               </span>
-              <span style={{ fontSize: 12, color: COLORS.textSecondary }}>{ev.total_preguntas} preguntas</span>
+              <span className="font-body-sm text-body-sm text-on-surface-variant">{ev.total_preguntas} preguntas</span>
             </Link>
           ))}
         </div>

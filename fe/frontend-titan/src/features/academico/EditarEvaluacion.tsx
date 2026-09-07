@@ -9,7 +9,6 @@ import {
   API_INSCRIPCIONES,
   API_PREGUNTAS,
   API_TIPOS_IDENTIFICACION,
-  COLORS,
   inputStyle,
 } from "../../constants/color";
 import type { ApiResponse, EvaluacionDetalle, Participante, ResultadoPresentacion, TipoDocumento, ToastType } from "../../types";
@@ -149,41 +148,45 @@ function EditarEvaluacion({ onToast }: EditarEvaluacionProps) {
   };
 
   if (!evaluacion) {
-    return <div style={{ padding: 24, color: COLORS.textSecondary }}>Cargando...</div>;
+    return <div className="p-gap-lg text-on-surface-variant font-body-sm text-body-sm">Cargando...</div>;
   }
+
+  const botonAgregarDeshabilitado = guardandoPregunta || !pregunta.trim();
+  const botonBuscarDeshabilitado = buscando || !idTipo || !numero;
+  const botonPresentarDeshabilitado = presentando || Object.keys(seleccion).length !== evaluacion.preguntas.length;
 
   return (
     <div>
       <PageHeader title={evaluacion.nombre} subtitle="Gestiona las preguntas de esta evaluación y registra calificaciones." />
 
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px", flex: "1 1 380px" }}>
-          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>
+      <div className="flex gap-gap-lg flex-wrap items-start">
+        <div className="bg-surface-container-lowest rounded-xl p-gap-lg flex-1 min-w-[380px]">
+          <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">
             Preguntas ({evaluacion.preguntas.length})
           </p>
           {evaluacion.preguntas.map((p) => (
-            <div key={p.id_pregunta} style={{ border: `1px solid ${COLORS.borderGray}`, borderRadius: 8, padding: "12px 16px", marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                <p style={{ fontWeight: 600, fontSize: 13, margin: "0 0 8px 0" }}>{p.pregunta}</p>
-                <button onClick={() => setPreguntaAEliminar(p.id_pregunta)} style={{ background: "none", border: "none", color: COLORS.errorText, cursor: "pointer", fontSize: 12 }}>
+            <div key={p.id_pregunta} className="bg-surface-container-low rounded-lg px-gap-sm py-gap-xs mb-gap-xs">
+              <div className="flex justify-between items-start gap-gap-2xs">
+                <p className="font-label-lg text-label-lg text-on-surface normal-case mb-gap-2xs">{p.pregunta}</p>
+                <button onClick={() => setPreguntaAEliminar(p.id_pregunta)} className="bg-transparent border-none text-error cursor-pointer font-body-sm text-body-sm">
                   Eliminar
                 </button>
               </div>
               {p.respuestas.map((r) => (
-                <p key={r.id_respuesta} style={{ margin: "2px 0", fontSize: 12, color: r.es_correcta ? COLORS.successText : COLORS.textSecondary }}>
+                <p key={r.id_respuesta} className={`m-0.5 font-body-sm text-body-sm ${r.es_correcta ? "text-green-700" : "text-on-surface-variant"}`}>
                   {r.es_correcta ? "✔" : "○"} {r.respuesta}
                 </p>
               ))}
             </div>
           ))}
 
-          <form onSubmit={agregarPregunta} style={{ borderTop: `1px solid ${COLORS.borderGray}`, paddingTop: 16, marginTop: 8 }}>
-            <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.textPrimary, margin: "0 0 12px 0" }}>Agregar pregunta</p>
+          <form onSubmit={agregarPregunta} className="border-t border-outline-variant/30 pt-gap-md mt-gap-xs">
+            <p className="font-label-lg text-label-lg uppercase text-on-surface mb-gap-sm">Agregar pregunta</p>
             <Field label="Pregunta" required>
               <input value={pregunta} onChange={(e) => setPregunta(e.target.value)} style={inputStyle} required />
             </Field>
             {respuestas.map((r, idx) => (
-              <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <div key={idx} className="flex items-center gap-gap-xs mb-gap-2xs">
                 <input
                   type="radio"
                   name="correcta"
@@ -203,20 +206,22 @@ function EditarEvaluacion({ onToast }: EditarEvaluacionProps) {
                 />
               </div>
             ))}
-            <button type="submit" disabled={guardandoPregunta} style={{
-              background: guardandoPregunta ? "#ccc" : COLORS.blue, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600, marginTop: 4,
-              cursor: guardandoPregunta ? "not-allowed" : "pointer",
-            }}>
+            <button
+              type="submit"
+              disabled={botonAgregarDeshabilitado}
+              className={`px-gap-md py-2 rounded-lg text-on-secondary font-label-lg text-label-lg uppercase tracking-wider mt-1 transition-colors ${
+                botonAgregarDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-secondary hover:bg-on-secondary-fixed"
+              }`}
+            >
               {guardandoPregunta ? "Guardando..." : "Agregar pregunta"}
             </button>
           </form>
         </div>
 
-        <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px", flex: "1 1 320px" }}>
-          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary, margin: "0 0 14px 0" }}>Registrar presentación</p>
+        <div className="bg-surface-container-lowest rounded-xl p-gap-lg flex-1 min-w-[320px]">
+          <p className="font-headline-sm text-headline-sm text-on-surface mb-gap-sm">Registrar presentación</p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
+          <div className="grid grid-cols-2 gap-x-gap-sm">
             <Field label="Tipo documento">
               <select value={idTipo} onChange={(e) => setIdTipo(e.target.value)} style={{ ...inputStyle, appearance: "none" }}>
                 <option value="">Seleccionar...</option>
@@ -229,38 +234,43 @@ function EditarEvaluacion({ onToast }: EditarEvaluacionProps) {
               <input value={numero} onChange={(e) => setNumero(e.target.value)} style={inputStyle} />
             </Field>
           </div>
-          <button onClick={buscarParticipante} disabled={buscando} style={{
-            background: COLORS.lightGray, border: `1px solid ${COLORS.borderGray}`, borderRadius: 8,
-            padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", marginBottom: 16,
-          }}>
+          <button
+            onClick={buscarParticipante}
+            disabled={botonBuscarDeshabilitado}
+            className={`px-gap-md py-2 rounded-lg font-label-lg text-label-lg uppercase tracking-wider mb-gap-md transition-colors ${
+              botonBuscarDeshabilitado ? "bg-surface-container-high text-on-surface-variant cursor-not-allowed" : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
+            }`}
+          >
             {buscando ? "Buscando..." : "Buscar participante"}
           </button>
 
           {participante && (
             <>
-              <p style={{ fontWeight: 700, fontSize: 13, margin: "0 0 12px 0" }}>{participante.nombre}</p>
+              <p className="font-label-lg text-label-lg text-on-surface normal-case mb-gap-sm">{participante.nombre}</p>
               {evaluacion.preguntas.map((p) => (
-                <div key={p.id_pregunta} style={{ marginBottom: 12 }}>
-                  <p style={{ fontWeight: 600, fontSize: 13, margin: "0 0 6px 0" }}>{p.pregunta}</p>
+                <div key={p.id_pregunta} className="mb-gap-xs">
+                  <p className="font-label-lg text-label-lg text-on-surface normal-case mb-gap-2xs">{p.pregunta}</p>
                   {p.respuestas.map((r) => (
-                    <label key={r.id_respuesta} style={{ display: "block", fontSize: 12, marginBottom: 4 }}>
+                    <label key={r.id_respuesta} className="block font-body-sm text-body-sm mb-1">
                       <input
                         type="radio"
                         name={`pregunta-${p.id_pregunta}`}
                         checked={seleccion[p.id_pregunta] === r.id_respuesta}
                         onChange={() => setSeleccion({ ...seleccion, [p.id_pregunta]: r.id_respuesta })}
-                        style={{ marginRight: 6 }}
+                        className="mr-gap-2xs"
                       />
                       {r.respuesta}
                     </label>
                   ))}
                 </div>
               ))}
-              <button onClick={presentar} disabled={presentando} style={{
-                background: presentando ? "#ccc" : COLORS.red, color: COLORS.white, border: "none",
-                borderRadius: 8, padding: "10px 20px", fontSize: 13, fontWeight: 600,
-                cursor: presentando ? "not-allowed" : "pointer",
-              }}>
+              <button
+                onClick={presentar}
+                disabled={botonPresentarDeshabilitado}
+                className={`px-gap-md py-2.5 rounded-lg text-on-primary font-headline-sm text-headline-sm uppercase tracking-wider transition-colors ${
+                  botonPresentarDeshabilitado ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+                }`}
+              >
                 {presentando ? "Calificando..." : "Calificar evaluación"}
               </button>
             </>

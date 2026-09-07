@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "../../api/client";
 import Field from "../../components/UI/Field";
 import PageHeader from "../../components/UI/PageHeader";
-import { API_ASISTENCIAS, API_PROGRAMACIONES, COLORS, inputStyle } from "../../constants/color";
+import { API_ASISTENCIAS, API_PROGRAMACIONES, inputStyle } from "../../constants/color";
 import type { ApiResponse, AsistenciaInscrito, CursoCalendario, ToastType } from "../../types";
 
 interface AsistenciaProps {
@@ -67,7 +67,7 @@ function Asistencia({ onToast }: AsistenciaProps) {
     <div>
       <PageHeader title="Control de asistencia" subtitle="Marca la asistencia de los participantes por sesión programada." />
 
-      <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: "24px 28px", maxWidth: 640, marginBottom: 24 }}>
+      <div className="bg-surface-container-lowest rounded-xl p-gap-lg max-w-2xl mb-gap-lg">
         <Field label="Sesión programada" required>
           <select
             value={idProgramacion}
@@ -90,41 +90,45 @@ function Asistencia({ onToast }: AsistenciaProps) {
       </div>
 
       {cargando ? (
-        <div style={{ textAlign: "center", padding: 48, color: COLORS.textSecondary, fontSize: 14 }}>Cargando...</div>
+        <div className="text-center py-gap-2xl text-on-surface-variant font-body-sm text-body-sm">Cargando...</div>
       ) : idProgramacion && inscritos.length === 0 ? (
-        <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <p style={{ color: COLORS.textSecondary, fontSize: 14, margin: 0 }}>Esta sesión no tiene participantes inscritos.</p>
+        <div className="bg-surface-container-lowest rounded-xl p-gap-2xl text-center">
+          <p className="font-body-sm text-body-sm text-on-surface-variant m-0">Esta sesión no tiene participantes inscritos.</p>
         </div>
       ) : inscritos.length > 0 ? (
-        <div style={{ background: COLORS.white, border: `1px solid ${COLORS.borderGray}`, borderRadius: 12, overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: COLORS.lightGray, textAlign: "left" }}>
-                <th style={{ padding: "10px 16px" }}>Participante</th>
-                <th style={{ padding: "10px 16px", textAlign: "center" }}>Asistió</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inscritos.map((i) => (
-                <tr key={i.id_inscripcion} style={{ borderTop: `1px solid ${COLORS.borderGray}` }}>
-                  <td style={{ padding: "10px 16px" }}>{i.nombre ?? `#${i.id_usuario}`}</td>
-                  <td style={{ padding: "10px 16px", textAlign: "center" }}>
-                    <input
-                      type="checkbox"
-                      checked={marcados[i.id_inscripcion] ?? false}
-                      onChange={(e) => setMarcados({ ...marcados, [i.id_inscripcion]: e.target.checked })}
-                    />
-                  </td>
+        <div className="bg-surface-container-lowest rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse font-body-sm text-body-sm">
+              <thead>
+                <tr className="bg-surface-container-low text-left">
+                  <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant">Participante</th>
+                  <th className="px-gap-sm py-gap-xs font-label-sm text-label-sm uppercase text-on-surface-variant text-center">Asistió</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ padding: "16px 20px", borderTop: `1px solid ${COLORS.borderGray}` }}>
-            <button onClick={guardarAsistencia} disabled={guardando} style={{
-              background: guardando ? "#ccc" : COLORS.red, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "9px 24px", fontSize: 13, fontWeight: 600,
-              cursor: guardando ? "not-allowed" : "pointer",
-            }}>
+              </thead>
+              <tbody>
+                {inscritos.map((i) => (
+                  <tr key={i.id_inscripcion} className="border-t border-outline-variant/20">
+                    <td className="px-gap-sm py-gap-xs">{i.nombre ?? `#${i.id_usuario}`}</td>
+                    <td className="px-gap-sm py-gap-xs text-center">
+                      <input
+                        type="checkbox"
+                        checked={marcados[i.id_inscripcion] ?? false}
+                        onChange={(e) => setMarcados({ ...marcados, [i.id_inscripcion]: e.target.checked })}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-gap-md py-gap-sm border-t border-outline-variant/30">
+            <button
+              onClick={guardarAsistencia}
+              disabled={guardando}
+              className={`px-gap-lg py-2.5 rounded-lg text-on-primary font-headline-sm text-headline-sm uppercase tracking-wider transition-colors ${
+                guardando ? "bg-outline-variant cursor-not-allowed" : "bg-primary-container hover:bg-primary"
+              }`}
+            >
               {guardando ? "Guardando..." : "Guardar asistencia"}
             </button>
           </div>

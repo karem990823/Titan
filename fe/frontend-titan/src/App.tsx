@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "./App.css";
-import { COLORS } from "./constants/color";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import type { ToastState, ToastType } from "./types";
 import { useAuth } from "./features/auth/useAuth";
@@ -48,13 +47,11 @@ function RedirectHome() {
 
 function AuthenticatedShell() {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: COLORS.lightGray, fontFamily: "Inter, Segoe UI, Arial, sans-serif" }}>
+    <div className="flex min-h-screen bg-surface-container-low font-body-md text-body-md text-on-surface">
       <Sidebar />
-      <main style={{ flex: 1, padding: "36px 40px", overflowY: "auto" }}>
+      <main className="flex-1 overflow-y-auto p-gap-lg md:p-gap-xl">
         <Header />
-        <div style={{ padding: "0 40px 40px" }}>
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
     </div>
   );

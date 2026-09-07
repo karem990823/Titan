@@ -1,5 +1,3 @@
-import { COLORS } from "../../constants/color";
-
 interface ConfirmModalProps {
   open: boolean;
   title: string;
@@ -17,37 +15,26 @@ function ConfirmModal({ open, title, message, confirmLabel = "Confirmar", danger
   return (
     <div
       onClick={onCancel}
-      style={{
-        position: "fixed", inset: 0, zIndex: 1100,
-        background: "rgba(0,0,0,0.4)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}
+      className="fixed inset-0 z-[1100] bg-on-background/50 flex items-center justify-center p-margin-mobile"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: COLORS.white, borderRadius: 12, padding: "24px 28px",
-          width: "100%", maxWidth: 380, boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
-        }}
+        className="bg-surface-container-lowest rounded-xl p-gap-lg w-full max-w-sm shadow-xl"
       >
-        <p style={{ fontWeight: 700, fontSize: 16, color: COLORS.textPrimary, margin: "0 0 10px 0" }}>{title}</p>
-        <p style={{ fontSize: 14, color: COLORS.textSecondary, margin: "0 0 22px 0" }}>{message}</p>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+        <p className="font-headline-sm text-headline-sm text-on-surface m-0 mb-gap-2xs">{title}</p>
+        <p className="font-body-sm text-body-sm text-on-surface-variant m-0 mb-gap-lg">{message}</p>
+        <div className="flex justify-end gap-gap-xs">
           <button
             onClick={onCancel}
-            style={{
-              background: COLORS.lightGray, border: `1px solid ${COLORS.borderGray}`, borderRadius: 8,
-              padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", color: COLORS.textPrimary,
-            }}
+            className="px-gap-sm py-2 rounded-lg bg-surface-container-high text-on-surface font-label-lg text-label-lg uppercase tracking-wider"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
-            style={{
-              background: danger ? COLORS.red : COLORS.blue, color: COLORS.white, border: "none",
-              borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer",
-            }}
+            className={`px-gap-sm py-2 rounded-lg text-on-primary font-label-lg text-label-lg uppercase tracking-wider ${
+              danger ? "bg-primary-container hover:bg-primary" : "bg-secondary hover:bg-on-secondary-fixed"
+            }`}
           >
             {confirmLabel}
           </button>
