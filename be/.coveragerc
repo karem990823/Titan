@@ -1,0 +1,23 @@
+# Cobertura del backend — Bootcamp Testing ADSO, semana 1.
+# Se mide la LÓGICA DE NEGOCIO: controllers/, utils/, deps.py, exceptions.py y
+# middleware/. Lo que queda fuera, y por qué:
+[run]
+source = App
+omit =
+    # Configuración y conexión a MySQL (adaptador de BD): no tiene reglas de negocio.
+    App/Modulo_Cursos/config/*
+    # Modelos SQLAlchemy y esquemas Pydantic: son declaraciones que se ejecutan
+    # completas al importarse; contarlas infla el porcentaje sin probar nada.
+    App/Modulo_Cursos/models/*
+    App/Modulo_Cursos/schemas/*
+    # Rutas FastAPI (adaptador HTTP): solo delegan en los controllers. Se prueban
+    # en la semana 4 (pruebas de API).
+    App/Modulo_Cursos/routes/*
+
+[report]
+show_missing = true
+skip_covered = false
+# Línea base de la semana 1 (redondeada hacia abajo, medida contra el código
+# real del proyecto el 2026-10-14). Desde hoy NO puede bajar; súbela cada
+# semana según el plan hasta llegar al 80% en la semana 8.
+fail_under = 32
