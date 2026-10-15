@@ -105,3 +105,27 @@ def enviar_correo_alertas(destinatario: str, vencimientos: list[dict], facturas:
     </div>
     """
     return enviar_correo(destinatario, "Alertas de TITAN-ES", cuerpo)
+
+
+def enviar_correo_alertas_empresa(destinatario: str, nombre_empresa: str, vencimientos: list[dict]) -> bool:
+    filas = "".join(
+        f'<li style="margin-bottom: 8px; color: #444;">{v["mensaje"]}</li>' for v in vencimientos
+    )
+
+    cuerpo = f"""
+    <div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; background: #f8f9ff;">
+      <p style="font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #93000b; font-weight: bold; margin: 0 0 8px;">
+        TITAN-ES Seguridad en Alturas
+      </p>
+      <h1 style="font-size: 20px; color: #0d1c2f; margin: 0 0 12px;">Hola {nombre_empresa}</h1>
+      <p style="font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 20px;">
+        Estos certificados de tus trabajadores están próximos a vencer. Inscríbelos
+        a tiempo para que no queden sin certificación vigente.
+      </p>
+      <h2 style="font-size: 15px; color: #476080; margin: 0 0 8px;">
+        Certificados próximos a vencer ({len(vencimientos)})
+      </h2>
+      <ul style="font-size: 13px; padding-left: 20px; margin: 0;">{filas}</ul>
+    </div>
+    """
+    return enviar_correo(destinatario, "Certificados próximos a vencer - TITAN-ES", cuerpo)
