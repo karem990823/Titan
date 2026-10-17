@@ -1,0 +1,133 @@
+from typing import Literal, Optional
+
+from pydantic import BaseModel, EmailStr, field_validator, model_validator
+
+
+class UsuarioBase(BaseModel):
+    nombre: str
+    apellido: str
+    correo: str
+
+class UsuarioResponse(UsuarioBase):
+    id_usuario: int
+
+    class Config:
+        from_attributes = True
+
+
+# --- Gestión de cuentas (solo Administrador) ---
+
+class UsuarioCreate(BaseModel):
+    tipo_registro: Literal["empresa", "trabajador", "usuario"]
+    nombre: str
+    apellido: Optional[str] = None
+    id_tipo: Optional[int] = None
+    numero_identificacion: Optional[int] = None
+    nit: Optional[int] = None
+    direccion: Optional[str] = None
+    telefono: Optional[int] = None
+    correo: EmailStr
+    id_rol: int
+    id_empresa: Optional[int] = None
+
+    @model_validator(mode="after")
+    def _validar_identificacion_empresa(self):
+        # "empresa" cubre tanto empresas reales (NIT) como independientes
+        # (documento personal) — cualquiera de las dos identifica la cuenta,
+        # pero no puede quedar sin ninguna.
+        if self.tipo_registro == "empresa":
+            tiene_nit = self.nit is not None
+            tiene_documento = self.id_tipo is not None and self.numero_identificacion is not None
+            if not tiene_nit and not tiene_documento:
+                raise ValueError(
+                    "Una cuenta de empresa necesita NIT, o tipo y número de documento si es independiente"
+                )
+        return self
+
+
+class UsuarioUpdate(BaseModel):
+    # Todos los campos son opcionales: el cliente envía solo lo que cambió
+    # (HU 04: la edición no debe exigir reingresar el formulario completo).
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    id_tipo: Optional[int] = None
+    numero_identificacion: Optional[int] = None
+    nit: Optional[int] = None
+    direccion: Optional[str] = None
+    telefono: Optional[int] = None
+    correo: Optional[EmailStr] = None
+    password: Optional[str] = None
+    id_rol: Optional[int] = None
+    id_empresa: Optional[int] = None
+    estado_activo: Optional[bool] = None
+
+    @field_validator("nombre")
+    @classmethod
+    def _nombre_no_vacio(cls, v):
+        # nombre es NOT NULL en la base: si viene, no puede ser vacío.
+        if v is not None:
+            v = v.strip()
+            if not v:
+                raise ValueError("El nombre no puede estar vacío")
+        return v
+
+    @field_validator("apellido", "direccion")
+    @classmethod
+    def _texto_limpio(cls, v):
+        return v.strip() if isinstance(v, str) else v
+
+    @field_validator("numero_identificacion", "nit", "telefono")
+    @classmethod
+    def _numero_positivo(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Debe ser un número positivo")
+        return v
+
+
+class UsuarioAdminResponse(BaseModel):
+    id_usuario: int
+    tipo_registro: str
+    nombre: str
+    apellido: Optional[str]
+    correo: Optional[str]
+    id_rol: Optional[int]
+    rol_nombre: Optional[str]
+    id_empresa: Optional[int]
+    estado_activo: bool
+
+    class Config:
+        from_attributes = True
+
+
+# --- Auto-registro de trabajadores por parte de una Empresa ---
+# Deliberadamente sin id_empresa/id_rol/password/correo: el controller los
+# fuerza server-side para que una empresa nunca pueda registrar un trabajador
+# a nombre de otra ni crear una cuenta con acceso al sistema.
+
+class TrabajadorSelfCreate(BaseModel):
+    nombre: str
+    apellido: str
+    id_tipo: int
+    numero_identificacion: int
+    direccion: Optional[str] = None
+    telefono: Optional[int] = None
+
+
+class TrabajadorResponse(BaseModel):
+    id_usuario: int
+    nombre: str
+    apellido: Optional[str]
+    numero_identificacion: Optional[int]
+    tipo_documento: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class HistorialPersonaResponse(BaseModel):
+    id_auditoria: int
+    campo: str
+    valor_anterior: Optional[str]
+    valor_nuevo: Optional[str]
+    usuario: Optional[str]
+    fecha: Optional[str]
