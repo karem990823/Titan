@@ -1,0 +1,100 @@
+# Orquesta los 3 servicios del proyecto TITAN: base de datos, backend y frontend.
+# Uso: docker compose up --build
+
+services:
+  db:
+    image: mysql:8.4.11
+    container_name: titan_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    # Puerto publicado solo para poder inspeccionar la base desde un cliente como
+    # MySQL Workbench en localhost:3306 durante desarrollo/sustentación. Docker no
+    # publica puertos hacia el host desde una red con "internal: true" (bloquea
+    # también la entrada, no solo la salida a Internet) — por eso "db" además de
+    # "titan_internal" se une a "titan_debug", una red sin ese aislamiento que
+    # ningún otro servicio usa. "fe" nunca se une a "titan_debug", así que sigue
+    # sin poder alcanzar "db" por la red de Docker.
+    ports:
+      - "3306:3306"
+    volumes:
+      - titan_db_data:/var/lib/mysql
+      - ./base/titan.sql:/docker-entrypoint-initdb.d/1-titan.sql:ro
+      - ./base/inserts.sql:/docker-entrypoint-initdb.d/2-inserts.sql:ro
+    healthcheck:
+      # La contraseña va como variable de entorno (MYSQL_PWD) del propio proceso de
+      # healthcheck, no como argumento "-p..." — así no queda visible en "docker top"
+      # ni en el listado de procesos dentro del contenedor.
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h localhost -u root --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - titan_internal
+      - titan_debug   # solo para publicar 3306 al host; ningún otro servicio la usa
+
+  be:
+    build:
+      context: ./be
+      dockerfile: be.Dockerfile
+    container_name: titan_be
+    restart: unless-stopped
+    env_file:
+      - ./be/.env
+    environment:
+      # Dentro de la red de Docker, el backend NO usa "localhost" para llegar a la BD,
+      # usa el nombre del servicio ("db"). Este valor sobreescribe el DB_HOST del .env
+      # solo cuando corre dentro de docker compose.
+      DB_HOST: db
+    ports:
+      - "8000:8000"
+    volumes:
+      - titan_uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - titan_internal   # para llegar a "db"
+      - titan_public      # para que "fe" (y el host) lo alcancen
+
+  fe:
+    build:
+      context: ./fe/frontend-titan
+      dockerfile: ../fe.Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: titan_fe
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - be
+    networks:
+      - titan_public   # nunca se une a "titan_internal": no tiene ruta de red hacia "db"
+
+networks:
+  # Red interna: solo "db" y "be". "internal: true" le quita a esta red la ruta de
+  # salida a Internet y hace que ningún servicio fuera de ella (incluido "fe") pueda
+  # alcanzar a "db", ni siquiera resolviendo su nombre.
+  titan_internal:
+    driver: bridge
+    internal: true
+  # Red pública: "be" y "fe", con salida normal (necesaria para publicar sus puertos
+  # al host y, en el caso de "be", para futuras integraciones externas).
+  titan_public:
+    driver: bridge
+  # Solo para que "db" publique 3306 hacia el host (MySQL Workbench). "fe" no se
+  # une a esta red, así que seguir sin poder alcanzar "db" por la red de Docker.
+  titan_debug:
+    driver: bridge
+
+volumes:
+  titan_db_data:
+  titan_uploads:
