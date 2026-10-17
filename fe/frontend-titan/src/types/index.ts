@@ -345,4 +345,5 @@ export interface ResultadoGenerarAlertas {
   nuevas_vencimiento: number;
   nuevas_factura: number;
   correo_enviado: boolean;
+  correos_empresas?: number;
 }

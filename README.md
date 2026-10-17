@@ -132,7 +132,7 @@ cd fe/frontend-titan && pnpm audit --audit-level moderate
 cd be && uvx pip-audit -r requirements.txt
 ```
 
-El CI (`.github/workflows/docker-ci.yml`) corre ambos comandos en cada PR hacia `develop`/`main` (ignorando explícitamente `PYSEC-2026-1325` de `ecdsa`, transitivo vía `python-jose` — sin fix publicado en ningún lado a la fecha; cualquier vulnerabilidad nueva sigue rompiendo el build).
+El CI (`.github/workflows/docker-ci.yml`) corre ambos comandos en cada PR hacia `develop`/`main`; cualquier vulnerabilidad encontrada rompe el build.
 
 ## Documentación
 
@@ -146,7 +146,7 @@ Toda la documentación funcional vive en [`docs/`](./docs), en Markdown:
 
 ## Stack
 
-- **Backend:** Python, FastAPI, SQLAlchemy, Pydantic, JWT (`python-jose`), `passlib`/bcrypt, `fpdf2`
+- **Backend:** Python, FastAPI, SQLAlchemy, Pydantic, JWT (`PyJWT`), `passlib`/bcrypt, `fpdf2`
 - **Frontend:** TypeScript, React 19, Vite, React Router, pnpm
 - **Base de datos:** MySQL 8
 - **Infraestructura:** Docker + Docker Compose

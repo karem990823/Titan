@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError as JWTError
 from passlib.context import CryptContext
 
 from App.Modulo_Cursos.config.config import settings
@@ -26,8 +27,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 def decode_access_token(token: str) -> dict:
-    # Lanza jose.JWTError si el token es inválido o expiró; el llamador
-    # (get_current_user) la traduce a un 401.
+    # Lanza jwt.InvalidTokenError (exportada aquí como JWTError) si el token
+    # es inválido o expiró; el llamador (get_current_user) la traduce a un 401.
     return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
 
 
