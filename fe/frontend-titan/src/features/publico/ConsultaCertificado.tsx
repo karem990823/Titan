@@ -226,6 +226,7 @@ function ConsultaCertificado() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 16 }}>
                 <div>
                   <label
+                    htmlFor="consulta-tipo-documento"
                     style={{
                       display: "block",
                       fontSize: 13,
@@ -244,6 +245,7 @@ function ConsultaCertificado() {
                       badge
                     </span>
                     <select
+                      id="consulta-tipo-documento"
                       value={idTipo}
                       onChange={(e) => setIdTipo(e.target.value)}
                       required
@@ -260,6 +262,7 @@ function ConsultaCertificado() {
                 </div>
                 <div>
                   <label
+                    htmlFor="consulta-numero-documento"
                     style={{
                       display: "block",
                       fontSize: 13,
@@ -278,6 +281,7 @@ function ConsultaCertificado() {
                       pin
                     </span>
                     <input
+                      id="consulta-numero-documento"
                       type="number"
                       placeholder="Ej: 1234567890"
                       value={numero}
@@ -334,15 +338,18 @@ function ConsultaCertificado() {
             )}
 
             {resultados && resultados.length === 0 && (
-              <p style={{ color: COLORS.textSecondary, fontSize: 13, marginTop: 20, textAlign: "center" }}>
+              <p role="status" style={{ color: COLORS.textSecondary, fontSize: 13, marginTop: 20, textAlign: "center" }}>
                 No se encontraron certificados para ese documento.
               </p>
             )}
 
             {resultados && resultados.length > 0 && (
-              <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 10 }}>
+              <ul
+                aria-label="Certificados encontrados"
+                style={{ listStyle: "none", padding: 0, marginTop: 24, display: "flex", flexDirection: "column", gap: 10 }}
+              >
                 {resultados.map((cert) => (
-                  <div
+                  <li
                     key={cert.id_certificado}
                     style={{
                       border: `1px solid ${COLORS.borderGray}`,
@@ -396,9 +403,9 @@ function ConsultaCertificado() {
                       </span>
                       {descargandoId === cert.id_certificado ? "Descargando..." : "Descargar PDF"}
                     </button>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
 
