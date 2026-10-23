@@ -34,6 +34,7 @@ import RegistrarTrabajador from "./features/empresa/RegistrarTrabajador";
 import DocumentosTrabajador from "./features/empresa/DocumentosTrabajador";
 import InscribirTrabajador from "./features/empresa/InscribirTrabajador";
 import MisCertificados from "./features/empresa/MisCertificados";
+import CompanyAlerts from "./features/empresa/CompanyAlerts";
 
 // Administrador
 import UsuariosAdmin from "./features/admin/UsuariosAdmin";
@@ -187,6 +188,14 @@ function App() {
             element={
               <RequireRole roles={["Empresa"]}>
                 <MisCertificados onToast={showToast} />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/empresa/alertas"
+            element={
+              <RequireRole roles={["Empresa"]}>
+                <CompanyAlerts onToast={showToast} />
               </RequireRole>
             }
           />

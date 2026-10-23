@@ -1,5 +1,6 @@
 from datetime import date, time, timedelta
 
+from App.Modulo_Cursos.models.certificado_model import Certificado
 from App.Modulo_Cursos.models.programacion_model import ProgramacionCurso
 from App.Modulo_Cursos.models.salud_model import Salud
 from App.Modulo_Cursos.models.usuario_model import Usuario
@@ -38,3 +39,17 @@ def crear_programacion(db_session, curso_obj, instructor_obj, cupos, fecha=None)
     db_session.commit()
     db_session.refresh(prog)
     return prog
+
+
+def crear_certificado(db_session, trabajador, curso_obj, dias_para_vencer):
+    cert = Certificado(
+        codigo=f"TEST-{trabajador.id_usuario}",
+        fecha_emision=date.today() - timedelta(days=300),
+        fecha_vencimiento=date.today() + timedelta(days=dias_para_vencer),
+        id_usuario=trabajador.id_usuario,
+        id_curso=curso_obj.id_curso,
+    )
+    db_session.add(cert)
+    db_session.commit()
+    db_session.refresh(cert)
+    return cert
