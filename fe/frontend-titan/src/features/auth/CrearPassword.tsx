@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { apiFetch } from "../../api/client";
 import { API_AUTH } from "../../constants/color";
 import logo from "../../assets/logo.webp";
+import { esPasswordValida, passwordsCoinciden } from "../../utils/validaciones";
 
 function CrearPassword() {
   const [searchParams] = useSearchParams();
@@ -16,8 +17,8 @@ function CrearPassword() {
   const [error, setError] = useState<string | null>(null);
   const [listo, setListo] = useState(false);
 
-  const passwordValida = password.length >= 8;
-  const coinciden = password === confirmar && confirmar.length > 0;
+  const passwordValida = esPasswordValida(password);
+  const coinciden = passwordsCoinciden(password, confirmar);
   const formularioValido = !!token && passwordValida && coinciden;
 
   const handleSubmit = async (e: React.FormEvent) => {
