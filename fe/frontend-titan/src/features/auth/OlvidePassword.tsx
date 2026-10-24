@@ -3,13 +3,14 @@ import { Link } from "react-router-dom";
 import { apiFetch } from "../../api/client";
 import { API_AUTH } from "../../constants/color";
 import logo from "../../assets/logo.webp";
+import { esCorreoValido } from "../../utils/validaciones";
 
 function OlvidePassword() {
   const [correo, setCorreo] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
 
-  const correoValido = /^\S+@\S+\.\S+$/.test(correo);
+  const correoValido = esCorreoValido(correo);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
