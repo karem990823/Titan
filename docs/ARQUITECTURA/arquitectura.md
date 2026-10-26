@@ -39,7 +39,7 @@ alineada con principios de Clean Architecture.
 - **Framework:** FastAPI + Uvicorn (servidor ASGI)
 - **ORM:** SQLAlchemy — mapea las clases de Python a las tablas de MySQL
 - **Pydantic** — validación, serialización y documentación automática de la API
-- **JWT (python-jose)** — autenticación y autorización de usuarios
+- **JWT (PyJWT)** — autenticación y autorización de usuarios
 - **Passlib + bcrypt** — cifrado seguro de contraseñas
 - **fpdf2** — generación de certificados en PDF
 
