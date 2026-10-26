@@ -18,8 +18,9 @@ export default defineConfig(({ mode }) => {
     },
     // Pruebas unitarias y de componentes (Vitest). "pnpm test" mide la cobertura siempre.
     test: {
-      // Semana 1: aún no hay pruebas del frontend; desde la semana 2 este flag sobra.
       passWithNoTests: true,
+      environment: "jsdom",
+      setupFiles: ["./src/test/setup.ts"],
       coverage: {
         provider: "v8",
         include: ["src/**/*.{ts,tsx}"],
@@ -27,6 +28,7 @@ export default defineConfig(({ mode }) => {
           "src/main.tsx", // arranque: solo monta <App />, no tiene lógica de negocio
           "src/vite-env.d.ts", // declaraciones de tipos: no generan código ejecutable
           "src/types/**", // solo interfaces de TypeScript: no generan código ejecutable
+          "src/test/**", // configuración de pruebas: no tiene lógica de negocio
         ],
         // Línea base de la semana 1. Desde hoy no puede bajar; súbela cada semana
         // según el plan hasta llegar al 80% en la semana 8.
