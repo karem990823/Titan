@@ -14,7 +14,7 @@ Reglas:
 | Integrante (usuario GitHub) | S1 | S2 | S3 | S4 | S5 | S6 | S7 | S8 | S9 |
 |---|---|---|---|---|---|---|---|---|---|
 | @karem990823 | E2E | BD | Front: RegistrarTrabajador | | | | | | |
-| @Johan-Millan | E2E | FRONT | | | | | | | |
+| @Johan-Millan | E2E | FRONT | Front: CrearPassword | | | | | | |
 | @enriquevasilescu-ops | E2E | API | | | | | | | |
 | @nicolgomez1708-del | E2E | E2e | | | | | | | |
 
