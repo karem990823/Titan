@@ -324,6 +324,7 @@ function ConsultaCertificado() {
 
             {error && (
               <p
+                role="alert"
                 style={{
                   color: COLORS.errorText,
                   background: COLORS.errorBg,
