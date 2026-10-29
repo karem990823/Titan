@@ -15,8 +15,8 @@ Reglas:
 |---|---|---|---|---|---|---|---|---|---|
 | @karem990823 | E2E | BD | Front: RegistrarTrabajador | | | | | | |
 | @Johan-Millan | E2E | FRONT | Front: CrearPassword | | | | | | |
-| @enriquevasilescu-ops | E2E | API | Front: ConsultaCertificado | | | | | | |
-| @nicolgomez1708-del | E2E | E2e | | | | | | | |
+| @enriquevasilescu-ops | E2E | API | Front: MisCertificados | | | | | | |
+| @nicolgomez1708-del | E2E | E2e | Front: ConsultaCertificado | | | | | | |
 
 ## Cobertura semanal
 
