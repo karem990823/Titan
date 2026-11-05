@@ -306,9 +306,18 @@ def eliminar_programacion(db: Session, id_programacion: int):
 
 
     if not programacion:
+            tiene_inscritos = db.query(Inscripcion).filter(
+        Inscripcion.id_programacion == id_programacion
+    ).first()
+
+    if tiene_inscritos:
         raise HTTPException(
-            status_code=404,
-            detail="Programación no encontrada"
+            status_code=status.HTTP_409_CONFLICT,
+            detail=api_response(
+                success=False,
+                message="No se pudo eliminar la programación",
+                error="La programación tiene inscritos y no se puede eliminar"
+            )
         )
 
 
