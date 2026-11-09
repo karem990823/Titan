@@ -1,3 +1,5 @@
+import { expect, test } from '@playwright/test';
+
 test('should show a message when the document has no certificates', async ({ page }) => {
   await page.goto('/certificados');
 
