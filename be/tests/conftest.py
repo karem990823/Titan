@@ -113,6 +113,24 @@ def instructor_token(instructor):
 
 
 @pytest.fixture()
+def admin(db_session, roles):
+    usuario = Usuario(
+        tipo_registro="usuario", nombre="Admin", apellido="Principal",
+        correo="admin@test.com", password_hash=hash_password("123"),
+        id_rol=roles["Administrador"].id_rol, estado_activo=True,
+    )
+    db_session.add(usuario)
+    db_session.commit()
+    db_session.refresh(usuario)
+    return usuario
+
+
+@pytest.fixture()
+def admin_token(admin):
+    return create_access_token(data={"sub": str(admin.id_usuario), "rol": "Administrador"})
+
+
+@pytest.fixture()
 def empresa_a(db_session, roles):
     usuario = Usuario(
         tipo_registro="empresa", nombre="Empresa A",
