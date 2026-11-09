@@ -16,7 +16,7 @@ Reglas:
 | @karem990823 | E2E | BD | Front: RegistrarTrabajador | API: usuarios | | | | | |
 | @Johan-Millan | E2E | FRONT | Front: CrearPassword | | | | | | |
 | @enriquevasilescu-ops | E2E | API | Front: MisCertificados | BD: programaciones | | | | | |
-| @nicolgomez1708-del | E2E | E2e | Front: ConsultaCertificado | | | | | | |
+| @nicolgomez1708-del | E2E | E2e | Front: ConsultaCertificado | Front: certificados públicos | | | | | |
 
 ## Cobertura semanal
 

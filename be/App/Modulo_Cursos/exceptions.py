@@ -21,6 +21,9 @@ async def validation_exception_handler(
         status_code=422,
         content=jsonable_encoder({
             "success": False,
+            "message": "Error de validación",
+            "data": None,
+            "error": "Los datos enviados no son válidos",
             "mensaje": "Error de validación",
             "errores": exc.errors()
         })
