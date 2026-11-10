@@ -12,7 +12,17 @@ logger = logging.getLogger("titan.errors")
 async def validation_exception_handler(
     request: Request,
     exc: RequestValidationError
-):
+):      
+    # JSON mal formado: 400 en vez del 422 de Pydantic, mismo formato del manejador.
+    # No se devuelve exc.errors() porque incluiría el cuerpo original que mandó el cliente.
+    if any(error["type"] == "json_invalid" for error in exc.errors()):
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "mensaje": "Cuerpo de la petición con JSON mal formado",
+            },
+    )
     # exc.errors() puede incluir el valor original que el usuario mandó (p. ej.
     # un Decimal) dentro de "input"/"ctx" — json.dumps normal (lo que usa
     # JSONResponse por defecto) no sabe serializar eso y tronaba con un 500 en
