@@ -7,6 +7,7 @@ from App.Modulo_Cursos.utils.email import enviar_correo_crear_password
 from App.Modulo_Cursos.utils.password_reset import generar_enlace_password
 from App.Modulo_Cursos.utils.response import api_response
 from App.Modulo_Cursos.utils.security import hash_password
+from App.Modulo_Cursos.models.tipo_identificacion_model import TipoIdentificacion
 
 
 def _serializar(usuario: Usuario) -> dict:
@@ -85,6 +86,8 @@ def _validar_rol_existe(db: Session, id_rol: int):
 def crear_usuario(db: Session, data) -> dict:
     _validar_correo_disponible(db, data.correo)
     _validar_rol_existe(db, data.id_rol)
+    if data.id_empresa is not None:
+        _validar_empresa_existe(db, data.id_empresa)
 
     # Sin password_hash todavía: el administrador nunca define la contraseña
     # de otra persona. Se le envía un enlace de un solo uso para que la cree
@@ -291,3 +294,16 @@ def listar_instructores(db: Session) -> list[dict]:
         "tipo_documento": i.tipo_documento.nombre if i.tipo_documento else "",
         "numero_identificacion": i.numero_identificacion
     } for i in instructores]
+
+def _validar_tipo_documento_existe(db: Session, id_tipo: int | None):
+    if id_tipo is None:
+        return
+    if not db.query(TipoIdentificacion).filter(TipoIdentificacion.id_tipo == id_tipo).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=api_response(
+                success=False,
+                message="No se pudo guardar el usuario",
+                error="El tipo de documento indicado no existe"
+            )
+        )
