@@ -5,6 +5,7 @@ import { defineConfig, devices } from '@playwright/test';
 const port = Number(process.env.FRONT_PORT ?? 5173);
 
 export default defineConfig({
+    globalSetup: './global-setup.js',
   testDir: './tests',
   use: {
     baseURL: `http://localhost:${port}`,
