@@ -16,7 +16,7 @@ Reglas:
 | @karem990823 | E2E | BD | Front: RegistrarTrabajador | API: usuarios | E2E: ConsultaCertificado (page.route) | | | | |
 | @Johan-Millan | E2E | FRONT | Front: CrearPassword | | | | | | |
 | @enriquevasilescu-ops | E2E | API | Front: MisCertificados | BD: programaciones | API: correo (dobles) | BD: restricciones de usuarios (MySQL real) | | | |
-| @nicolgomez1708-del | E2E | E2e | Front: ConsultaCertificado | | | | | | |
+| @nicolgomez1708-del | E2E | E2e | Front: ConsultaCertificado | | | API: usuarios contra MySQL real | | | |
 
 ## Cobertura semanal
 
