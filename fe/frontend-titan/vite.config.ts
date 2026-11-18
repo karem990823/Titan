@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
     test: {
       passWithNoTests: true,
       environment: "jsdom",
-      setupFiles: ["./src/test/setup.ts"],
+      setupFiles: ["./src/test/setup.ts", "./src/test/msw-setup.ts"],
       coverage: {
         provider: "v8",
         include: ["src/**/*.{ts,tsx}"],
