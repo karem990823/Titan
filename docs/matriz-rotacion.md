@@ -14,7 +14,7 @@ Reglas:
 | Integrante (usuario GitHub) | S1 | S2 | S3 | S4 | S5 | S6 | S7 | S8 | S9 |
 |---|---|---|---|---|---|---|---|---|---|
 | @karem990823 | E2E | BD | Front: RegistrarTrabajador | API: usuarios | E2E: ConsultaCertificado (page.route) | | | | |
-| @Johan-Millan | E2E | FRONT | Front: CrearPassword | | | | | | |
+| @Johan-Millan | E2E | FRONT | Front: CrearPassword | E2E: seguridad y errores | | | | | |
 | @enriquevasilescu-ops | E2E | API | Front: MisCertificados | BD: programaciones | API: correo (dobles) | | | | |
 | @nicolgomez1708-del | E2E | E2e | Front: ConsultaCertificado | BD: repositorio de usuarios (dobles) | BD: repositorio de usuarios (dobles) | | | | |
 
