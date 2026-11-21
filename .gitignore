@@ -55,3 +55,4 @@ doc_prueba.*
 Thumbs.db
 *.swp
 *.swo
+.auth/
