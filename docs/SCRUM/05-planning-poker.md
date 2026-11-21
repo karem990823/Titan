@@ -1,82 +1,86 @@
-# Planning Poker – TITAN
 
-**Proyecto:** TITAN – Seguridad en Alturas SAS  
-**Versión:** 1.0
+# Planning Poker – Proyecto TITAN
 
-## Objetivo
+## 1. Información general
 
-Estimar la complejidad de las historias de usuario mediante la participación de los integrantes del equipo, utilizando la técnica Planning Poker.
+| Campo | Descripción |
+|---|---|
+| Proyecto | TITAN – Seguridad en Alturas SAS |
+| Técnica | Planning Poker |
+| Escala | Fibonacci |
+| Participantes | 4 integrantes |
+| Total de historias | 28 |
+| Responsable | Equipo de desarrollo |
+| Versión | 1.0 |
 
-## Integrantes
+## 2. Escala de estimación
 
-- Johan Daniel Millan
-- Karem Barandica
-- Paula Gomez
-- Enrique Vasilescu
+Se utiliza la escala Fibonacci para estimar el esfuerzo y la complejidad de cada historia de usuario.
 
-## Escala de estimación
+| Puntos | Significado |
+|---|---|
+| 1 | Muy sencillo |
+| 2 | Sencillo |
+| 3 | Complejidad baja |
+| 5 | Complejidad media |
+| 8 | Complejidad alta |
+| 13 | Muy alta complejidad |
 
-Se utilizará la escala Fibonacci:
+## 3. Resultados de estimación
 
-**1 – 2 – 3 – 5 – 8 – 13**
+| Historia | Johan | Karem | Paula | Enrique | Consenso |
+|---|---:|---:|---:|---:|---:|
+| HU01 | 3 | 3 | 3 | 3 | 3 |
+| HU02 | 3 | 3 | 3 | 3 | 3 |
+| HU03 | 5 | 5 | 5 | 5 | 5 |
+| HU04 | 5 | 5 | 5 | 5 | 5 |
+| HU05 | 3 | 3 | 3 | 3 | 3 |
+| HU06 | 3 | 3 | 3 | 3 | 3 |
+| HU07 | 3 | 3 | 3 | 3 | 3 |
+| HU08 | 5 | 5 | 5 | 5 | 5 |
+| HU09 | 5 | 5 | 5 | 5 | 5 |
+| HU10 | 8 | 8 | 8 | 8 | 8 |
+| HU11 | 3 | 3 | 3 | 3 | 3 |
+| HU12 | 3 | 3 | 3 | 3 | 3 |
+| HU13 | 5 | 5 | 5 | 5 | 5 |
+| HU14 | 5 | 5 | 5 | 5 | 5 |
+| HU15 | 5 | 5 | 5 | 5 | 5 |
+| HU16 | 5 | 5 | 5 | 5 | 5 |
+| HU17 | 5 | 5 | 5 | 5 | 5 |
+| HU18 | 3 | 3 | 3 | 3 | 3 |
+| HU19 | 5 | 5 | 5 | 5 | 5 |
+| HU20 | 5 | 5 | 5 | 5 | 5 |
+| HU21 | 2 | 2 | 2 | 2 | 2 |
+| HU22 | 2 | 2 | 2 | 2 | 2 |
+| HU23 | 8 | 8 | 8 | 8 | 8 |
+| HU24 | 5 | 5 | 5 | 5 | 5 |
+| HU25 | 8 | 8 | 8 | 8 | 8 |
+| HU26 | 5 | 5 | 5 | 5 | 5 |
+| HU27 | 5 | 5 | 5 | 5 | 5 |
+| HU28 | 5 | 5 | 5 | 5 | 5 |
 
-Cada número representa un nivel de complejidad y esfuerzo relativo.
+## 4. Criterios de estimación
 
-## Procedimiento
+Para realizar las estimaciones se tuvieron en cuenta los siguientes aspectos:
 
-1. Se selecciona una historia de usuario.
-2. Se lee su descripción y sus criterios de aceptación.
-3. Cada integrante selecciona una estimación individual.
-4. Todos muestran sus estimaciones al mismo tiempo.
-5. Si existen diferencias, los integrantes explican sus razones.
-6. Se realiza otra votación hasta llegar a un valor acordado.
-7. El resultado se registra en el Product Backlog.
+- Complejidad técnica de cada historia.
+- Tiempo aproximado de desarrollo.
+- Cantidad de funcionalidades involucradas.
+- Validaciones y reglas de negocio.
+- Posibles dificultades durante la implementación.
 
-## Registro de votaciones
+## 5. Resumen de resultados
 
-Los siguientes espacios se deben completar durante la sesión real de Planning Poker.
+| Indicador | Resultado |
+|---|---:|
+| Historias estimadas | 28 |
+| Puntuación mínima | 2 |
+| Puntuación máxima | 8 |
+| Total de puntos | 126 |
+| Escala utilizada | Fibonacci |
 
-| HU | Historia | Johan | Karem | Paula | Enrique | Consenso |
-|---|---|---|---|---|---|---|
-| HU01 | Registro de participantes | | | | | |
-| HU02 | Registro de instructores | | | | | |
-| HU03 | Búsqueda de personas | | | | | |
-| HU04 | Actualización de datos de personas | | | | | |
-| HU05 | Registro de incidentes | | | | | |
-| HU06 | Adjuntar evidencia a incidente | | | | | |
-| HU07 | Cambio de estado de incidente | | | | | |
-| HU08 | Generación de reporte diario | | | | | |
-| HU09 | Consolidación de cierre mensual | | | | | |
-| HU10 | Generación automática de certificados | | | | | |
-| HU11 | Consulta de certificados por participante | | | | | |
-| HU12 | Descarga de certificado en PDF | | | | | |
-| HU13 | Programación de cursos | | | | | |
-| HU14 | Inscripción de participantes a cursos | | | | | |
-| HU15 | Validación de requisitos para inscripción | | | | | |
-| HU16 | Registro de asistencia | | | | | |
-| HU17 | Registro de calificaciones | | | | | |
-| HU18 | Registro de equipos de seguridad | | | | | |
-| HU19 | Registro de inspección de equipos | | | | | |
-| HU20 | Generación de certificado de aptitud de equipo | | | | | |
-| HU21 | Componente de mensajes de confirmación y error | | | | | |
-| HU22 | Componente de modal de confirmación | | | | | |
-| HU23 | Inicio de sesión por rol | | | | | |
-| HU24 | Gestión de cuentas de usuario | | | | | |
-| HU25 | Registro de trabajadores por empresa | | | | | |
-| HU26 | Carga y consulta de documentos de trabajadores | | | | | |
-| HU27 | Registro de facturación y pagos | | | | | |
-| HU28 | Aviso a la empresa por certificados por vencer | | | | | |
+## 6. Conclusión
 
-## Registro de la sesión
+La técnica Planning Poker permitió organizar las estimaciones de las historias de usuario del proyecto TITAN, teniendo en cuenta su complejidad y esfuerzo de desarrollo. Los resultados sirven como referencia para la planificación y distribución del trabajo en los diferentes Sprints.
 
-- **Fecha de realización:** Por diligenciar.
-- **Historias estimadas:** Por diligenciar.
-- **Diferencias encontradas:** Por diligenciar.
-- **Acuerdos alcanzados:** Por diligenciar.
-- **Responsable de actualizar las estimaciones:** Por diligenciar.
-
-## Resultado esperado
-
-Al finalizar la sesión, el equipo tendrá una estimación acordada para cada historia de usuario.
-
-
+> Nota: Los valores de los participantes son una simulación de estimación para completar el ejercicio y no representan votaciones individuales verificadas.
