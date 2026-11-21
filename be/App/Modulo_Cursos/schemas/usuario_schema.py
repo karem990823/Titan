@@ -1,6 +1,9 @@
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+
+BIGINT_MAX = 9223372036854775807  # máximo de la columna BIGINT de MySQL
+
 
 
 class UsuarioBase(BaseModel):
@@ -19,16 +22,23 @@ class UsuarioResponse(UsuarioBase):
 
 class UsuarioCreate(BaseModel):
     tipo_registro: Literal["empresa", "trabajador", "usuario"]
-    nombre: str
-    apellido: Optional[str] = None
+    nombre: str = Field(max_length=150)
+    apellido: Optional[str] = Field(default=None, max_length=150)
     id_tipo: Optional[int] = None
-    numero_identificacion: Optional[int] = None
-    nit: Optional[int] = None
-    direccion: Optional[str] = None
-    telefono: Optional[int] = None
+    numero_identificacion: Optional[int] = Field(default=None, le=BIGINT_MAX)
+    nit: Optional[int] = Field(default=None, le=BIGINT_MAX)
+    direccion: Optional[str] = Field(default=None, max_length=200)
+    telefono: Optional[int] = Field(default=None, le=BIGINT_MAX)
     correo: EmailStr
     id_rol: int
     id_empresa: Optional[int] = None
+
+    @field_validator("correo")
+    @classmethod
+    def _correo_cabe_en_la_columna(cls, valor: str) -> str:
+        if len(valor) > 100:
+            raise ValueError("El correo no puede superar los 100 caracteres")
+        return valor
 
     @model_validator(mode="after")
     def _validar_identificacion_empresa(self):
