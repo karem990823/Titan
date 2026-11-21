@@ -113,15 +113,52 @@ Cada `.env.example` del repo tiene su propio propósito — no son intercambiabl
 
 **`base/.env.example`** (para correr solo la base de datos fuera del stack completo, con `base/docker-compose.yml`): mismas 4 variables que `root.env.example`.
 
+## Estructura de base de datos
+
+MySQL 8, 34 tablas relacionales (esquema completo en [`base/titan.sql`](./base/titan.sql); diagrama entidad-relación en [`base/ER_TITAN.svg`](./base/ER_TITAN.svg)). Agrupadas por dominio:
+
+| Dominio | Tablas principales |
+|---|---|
+| Usuarios y acceso | `usuarios`, `roles`, `tipo_identificacion`, `password_reset_tokens` |
+| Académico | `cursos`, `programacion_cursos`, `inscripciones`, `asistencias`, `disponibilidad` |
+| Evaluación | `evaluaciones`, `preguntas`, `respuestas`, `evaluaciones_presentadas`, `resultados` |
+| Certificación | `certificados`, `certificados_indumentaria` |
+| Seguridad y equipos | `indumentaria`, `inspecciones_indumentaria`, `salud` |
+| Incidentes | `accidentes`, `tipos_accidente`, `historial_estado_incidente`, `evidencias_incidente` |
+| Documentos y facturación | `documentos`, `facturas`, `detalle_factura`, `pagos`, `metodo_pago` |
+| Alertas y reportes | `alertas`, `tipos_alerta`, `reportes`, `consolidados_mensuales`, `consolidado_participantes` |
+| Público | `solicitudes_contacto` |
+
+`usuarios` es la tabla central: un mismo registro representa, según `tipo_registro`, una empresa, un trabajador (sin acceso al sistema, solo datos) o una cuenta con login (instructor/administrador); `id_empresa` es una auto-referencia a la misma tabla.
+
+La **primera carga** la hace MySQL automáticamente al crear el contenedor (`docker-entrypoint-initdb.d`, ver `docker-compose.yml`): primero `base/titan.sql` (esquema) y luego `base/inserts.sql` (datos semilla — cursos, roles, usuarios de prueba y las credenciales de la tabla de arriba). Si cambias cualquiera de los dos archivos, el contenedor ya inicializado no los vuelve a leer: hace falta `./scripts/stop.sh --volumes && ./scripts/start.sh` para recrear el volumen de datos desde cero.
+
 ## Pruebas
 
 ```bash
-docker compose exec be pytest -v          # con el stack ya levantado
+# Backend — unitarias + API (con SQLite aislado, no toca la BD de desarrollo)
+docker compose exec be pytest -v
 # o, fuera de Docker, con el venv del backend activo:
 cd be && pytest -v
+
+# Backend — integración contra MySQL real (BD desechable aparte, nunca la de desarrollo)
+docker compose --profile integracion up -d db-test
+docker compose exec -e TEST_DATABASE_URL="mysql+pymysql://titan_test:titan_test@db-test:3306/titan_test" be pytest tests/integracion -v
+
+# Frontend — componentes y lógica pura (Vitest + Testing Library + MSW)
+cd fe/frontend-titan && pnpm test
+
+# End-to-end (Playwright, navegador real) — requiere db + be levantados y el puerto 5173 libre
+cd e2e && pnpm install && pnpm exec playwright install chromium && pnpm test
 ```
 
-Cubren las 5 validaciones de negocio de `inscribir_participante` (cupos, inscripción duplicada, aptitud médica, requisito de reentrenamiento, trabajador ajeno a la empresa) y una prueba de concurrencia (5 inscripciones simultáneas sobre el último cupo, verificando que no hay sobreventa).
+151 pruebas automatizadas en total:
+
+- **Backend (87)**: reglas de negocio de inscripción (cupos, duplicados, aptitud médica, reentrenamiento, trabajador ajeno a la empresa), concurrencia (5 inscripciones simultáneas sobre el último cupo sin sobreventa), límite de intentos de login, validación de identificación de empresa/independiente, CRUD de usuarios, alertas de vencimiento, y 19 pruebas de integración contra MySQL real (restricciones de columna, relaciones y FKs que SQLite no ejerce igual).
+- **Frontend (46)**: validaciones puras (contraseña, correo), componentes con interacción real (`RegistrarTrabajador`, `CrearPassword`, `MisCertificados`, `ConsultaCertificado`, `OlvidePassword`) y el cliente HTTP con MSW (éxito, 500, 422, respuesta no JSON).
+- **E2E (18)**: flujos completos en navegador — consulta pública de certificados, login de empresa, registro de trabajadores, y estados difíciles de provocar con el backend real simulados con `page.route` (caído, vacío, inválido).
+
+El detalle de quién probó qué capa cada semana, y los hallazgos encontrados en el proceso, está en [`docs/matriz-rotacion.md`](./docs/matriz-rotacion.md).
 
 ## Auditoría de dependencias
 
@@ -143,11 +180,14 @@ Toda la documentación funcional vive en [`docs/`](./docs), en Markdown:
 - [`docs/CASOS DE USO/`](./docs/CASOS%20DE%20USO) — casos de uso (CU) detallados
 - [`docs/RESTRICCIONES/`](./docs/RESTRICCIONES) — restricciones del proyecto
 - [`docs/ARQUITECTURA/arquitectura.md`](./docs/ARQUITECTURA/arquitectura.md) — arquitectura, stack tecnológico y convenciones de código
+- [`base/ER_TITAN.svg`](./base/ER_TITAN.svg) — diagrama entidad-relación completo de las 34 tablas
+- [`docs/REFLEXION/reflexion-backends-y-deuda-tecnica.md`](./docs/REFLEXION/reflexion-backends-y-deuda-tecnica.md) — comparación de los backends vistos en el programa y deuda técnica priorizada
 
 ## Stack
 
 - **Backend:** Python, FastAPI, SQLAlchemy, Pydantic, JWT (`PyJWT`), `passlib`/bcrypt, `fpdf2`
-- **Frontend:** TypeScript, React 19, Vite, React Router, pnpm
+- **Frontend:** TypeScript, React 19, Vite, React Router, pnpm, Tailwind CSS
+- **Pruebas:** pytest + pytest-cov (backend), Vitest + Testing Library + MSW (frontend), Playwright (E2E)
 - **Base de datos:** MySQL 8
 - **Infraestructura:** Docker + Docker Compose
 
