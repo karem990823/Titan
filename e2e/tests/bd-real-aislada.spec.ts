@@ -42,9 +42,10 @@ test('un trabajador registrado queda guardado en la BD real y no tiene certifica
   await expect(page.getByText('No se encontraron certificados para ese documento.')).toBeVisible();
 });
 
-// HALLAZGO: ni la BD (sin UNIQUE en numero_identificacion) ni el API validan documentos repetidos.
-// test.fail() = se espera que falle; cuando se corrija la regla, este test avisará para quitar la marca.
-test.fail('HALLAZGO: un documento repetido debería rechazarse con 4xx', async ({ page }) => {
+// Hallazgo original: ni la BD (sin UNIQUE en numero_identificacion) ni el API
+// validaban documentos repetidos. Corregido en usuario_controller.py
+// (_validar_documento_disponible) — ya no lleva test.fail().
+test('un documento repetido debería rechazarse con 4xx', async ({ page }) => {
   // Arrange: el primero se registra bien
   const documento = unico();
   const primero = `Primero${unico()}`;

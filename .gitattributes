@@ -1,0 +1,4 @@
+# Los scripts de shell corren dentro de contenedores Linux (o se invocan con
+# "./script.sh", que depende del shebang). Un final de línea CRLF los rompe
+# con "bad interpreter" — forzamos LF sin importar el autocrlf de cada quien.
+*.sh text eol=lf

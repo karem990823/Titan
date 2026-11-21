@@ -81,6 +81,18 @@ def _validar_rol_existe(db: Session, id_rol: int):
         )
 
 
+def _validar_tipo_existe(db: Session, id_tipo: int):
+    if not db.query(TipoIdentificacion).filter(TipoIdentificacion.id_tipo == id_tipo).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=api_response(
+                success=False,
+                message="No se pudo guardar el usuario",
+                error="El tipo de documento indicado no existe"
+            )
+        )
+
+
 # --- Gestión de cuentas (Administrador) ---
 
 def crear_usuario(db: Session, data) -> dict:
@@ -88,6 +100,8 @@ def crear_usuario(db: Session, data) -> dict:
     _validar_rol_existe(db, data.id_rol)
     if data.id_empresa is not None:
         _validar_empresa_existe(db, data.id_empresa)
+    if data.id_tipo is not None:
+        _validar_tipo_existe(db, data.id_tipo)
 
     # Sin password_hash todavía: el administrador nunca define la contraseña
     # de otra persona. Se le envía un enlace de un solo uso para que la cree
@@ -145,6 +159,10 @@ def actualizar_usuario(db: Session, id_usuario: int, data) -> dict:
         _validar_correo_disponible(db, cambios["correo"], id_usuario_actual=id_usuario)
     if "id_rol" in cambios:
         _validar_rol_existe(db, cambios["id_rol"])
+    if cambios.get("id_empresa") is not None:
+        _validar_empresa_existe(db, cambios["id_empresa"])
+    if cambios.get("id_tipo") is not None:
+        _validar_tipo_existe(db, cambios["id_tipo"])
 
     for campo, valor in cambios.items():
         setattr(usuario, campo, valor)
@@ -195,7 +213,20 @@ def _validar_empresa_existe(db: Session, id_empresa: int) -> Usuario:
     return empresa
 
 
+def _validar_documento_disponible(db: Session, numero_identificacion: int):
+    if db.query(Usuario).filter(Usuario.numero_identificacion == numero_identificacion).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=api_response(
+                success=False,
+                message="No se pudo registrar el trabajador",
+                error="Ya existe un trabajador registrado con ese documento"
+            )
+        )
+
+
 def _crear_trabajador(db: Session, data, id_empresa: int) -> dict:
+    _validar_documento_disponible(db, data.numero_identificacion)
     rol_participante = db.query(Rol).filter(Rol.nombre_rol == "Participante").first()
 
     nuevo = Usuario(
